@@ -34,3 +34,7 @@ See https://github.com/allenporter/supernote-llm
   - [ ] Check for journal entry on date
   - [ ] Create journal entry if it does not already exist
   - [ ] Add content to the journal entry
+
+Future work:
+- [ ] media source for syncing down from device
+- [ ] vector search from a calendar
