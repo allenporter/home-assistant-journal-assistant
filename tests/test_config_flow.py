@@ -2,21 +2,17 @@
 
 from unittest.mock import patch
 
-
 from homeassistant import config_entries
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.core import HomeAssistant
-from homeassistant.const import (
-    CONF_DEVICE_ID,
-)
+from homeassistant.const import CONF_NAME
 
 
-from custom_components.journal_assistant.const import DOMAIN
+from custom_components.journal_assistant.const import DOMAIN, CONF_MEDIA_SOURCE
 
 
 async def test_select_device(
     hass: HomeAssistant,
-    zwave_device_id: str,
 ) -> None:
     """Test selecting a device in the configuration flow."""
     result = await hass.config_entries.flow.async_init(
@@ -31,15 +27,17 @@ async def test_select_device(
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {
-                CONF_DEVICE_ID: zwave_device_id,
+                CONF_NAME: "Title",
+                CONF_MEDIA_SOURCE: "media-source://example",
             },
         )
         await hass.async_block_till_done()
 
     assert result.get("type") is FlowResultType.CREATE_ENTRY
-    assert result.get("title") == "Device name"
+    assert result.get("title") == "Title"
     assert result.get("data") == {}
     assert result.get("options") == {
-        CONF_DEVICE_ID: zwave_device_id,
+        CONF_NAME: "Title",
+        CONF_MEDIA_SOURCE: "media-source://example",
     }
     assert len(mock_setup.mock_calls) == 1

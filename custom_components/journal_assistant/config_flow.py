@@ -3,27 +3,28 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, cast
 
 import voluptuous as vol
 
-from homeassistant.const import CONF_DEVICE_ID
-from homeassistant.helpers import device_registry as dr, selector
+from homeassistant.const import CONF_NAME
+from homeassistant.helpers import (
+    config_validation as cv,
+)
 from homeassistant.helpers.schema_config_entry_flow import (
     SchemaConfigFlowHandler,
     SchemaFlowFormStep,
 )
 
-from .const import DOMAIN
+from .const import DOMAIN, CONF_MEDIA_SOURCE
 
 
 CONFIG_FLOW = {
     "user": SchemaFlowFormStep(
         vol.Schema(
             {
-                vol.Required(CONF_DEVICE_ID): selector.DeviceSelector(
-                    selector.DeviceSelectorConfig(integration="zwave_js")
-                ),
+                vol.Required(CONF_NAME): cv.string,
+                vol.Required(CONF_MEDIA_SOURCE): cv.string,
             }
         )
     )
@@ -45,6 +46,4 @@ class JournalAssistantConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
 
     def async_config_entry_title(self, options: Mapping[str, Any]) -> str:
         """Return config entry title."""
-        registry = dr.async_get(self.hass)
-        device_entry = registry.async_get(options[CONF_DEVICE_ID])
-        return device_entry.name_by_user or device_entry.name
+        return cast(str, options[CONF_NAME])
