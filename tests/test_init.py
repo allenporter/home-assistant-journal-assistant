@@ -1,21 +1,23 @@
 """Tests for the journal_assistant component."""
 
-import pytest
-
-from homeassistant import config_entries
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import device_registry as dr
 
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
-    async_mock_service,
-)
-
-from custom_components.journal_assistant.const import (
-    DOMAIN,
 )
 
 
-@pytest.fixture(autouse=True)
-def mock_setup_integration(config_entry: MockConfigEntry) -> None:
+async def test_init(
+    hass: HomeAssistant, config_entry: MockConfigEntry, setup_integration: None
+) -> None:
     """Setup the integration"""
+
+    assert config_entry.state is ConfigEntryState.LOADED
+
+    assert await hass.config_entries.async_unload(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert (
+        config_entry.state is ConfigEntryState.NOT_LOADED  # type: ignore[comparison-overlap]
+    )

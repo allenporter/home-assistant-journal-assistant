@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 
-import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
@@ -12,10 +11,14 @@ from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
 
+__all__ = [
+    "DOMAIN",
+]
+
 _LOGGER = logging.getLogger(__name__)
 
 
-PLATFORMS: tuple[Platform] = (Platform.EVENT,)
+PLATFORMS: tuple[Platform] = ()  # type: ignore[assignment]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
