@@ -17,13 +17,13 @@ See https://github.com/allenporter/supernote-llm
 ## Development plan
 
 - [x] Initial dummy calendar
-- [ ] media-source input config flow
-- [ ] conversation agent in config flow
-- [ ] Create output storage directory for yaml
-- [ ] Multi-modal call that outputs yaml structured output
-- [ ] (re)process a media uri on demand
-- [ ] Structured output => Journal demo
-- [ ] For notebook entries
+- Processing
+  - [ ] media-source input config flow
+  - [ ] conversation agent in config flow
+  - [ ] Create output storage directory for yaml
+  - [ ] Multi-modal call that outputs yaml structured output
+  - [ ] (re)process a media uri on demand
+  - [ ] Structured output => Journal demo
 - [ ] Create monthly journal entity
 - [ ] Create weekly journal entity
 - [ ] Create daily journal entity (tasks?)
