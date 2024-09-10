@@ -1,0 +1,1 @@
+"""A journal calendar component."""
