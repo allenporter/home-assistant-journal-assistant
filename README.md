@@ -10,13 +10,13 @@ LLM understanding to develop a personal assistant. This integration will:
 
 - Take as input a media source path and a multi-modal conversation agent
 - Process the media source with a set of dynamic prompts
-- Expose a parsed RFC5545 journal as a calendar
+- Expose a parsed RFC5545 JOURNAL as a calendar entity
 
 See https://github.com/allenporter/supernote-llm
 
 ## Development plan
 
-- [ ] Initial dummy calendar
+- [x] Initial dummy calendar
 - [ ] media-source input config flow
 - [ ] conversation agent in config flow
 - [ ] Create output storage directory for yaml

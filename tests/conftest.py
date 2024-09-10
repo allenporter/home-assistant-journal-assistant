@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from homeassistant.const import Platform
+from homeassistant.const import Platform, CONF_NAME
 from homeassistant.core import HomeAssistant
 from homeassistant.setup import async_setup_component
 
@@ -15,7 +15,7 @@ from pytest_homeassistant_custom_component.common import (
 )
 
 from custom_components.journal_assistant.const import (
-    DOMAIN,
+    DOMAIN, CONF_MEDIA_SOURCE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -56,9 +56,13 @@ async def mock_config_entry(
 ) -> MockConfigEntry:
     """Fixture to create a configuration entry."""
     config_entry = MockConfigEntry(
-        data={},
+        data={
+            CONF_NAME: "My Journal",
+            CONF_MEDIA_SOURCE: "media-source://example",
+        },
         domain=DOMAIN,
         options={},
+        title="My Journal",
     )
     config_entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(config_entry.entry_id)

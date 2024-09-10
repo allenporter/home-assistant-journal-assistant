@@ -18,7 +18,7 @@ __all__ = [
 _LOGGER = logging.getLogger(__name__)
 
 
-PLATFORMS: tuple[Platform] = ()  # type: ignore[assignment]
+PLATFORMS: tuple[Platform] = (Platform.CALENDAR,)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
