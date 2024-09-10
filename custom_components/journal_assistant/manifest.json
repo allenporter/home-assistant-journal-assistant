@@ -1,0 +1,11 @@
+{
+  "domain": "journal_assistant",
+  "name": "Journal Assistant",
+  "codeowners": ["@allenporter"],
+  "config_flow": true,
+  "documentation": "https://github.com/allenporter/home-assistant-journal-asssistant",
+  "integration_type": "integration",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/allenporter/home-assistant-journal-asssistant/issues",
+  "version": "0.0.1"
+}
