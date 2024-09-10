@@ -9,3 +9,6 @@ async def test_calendar(hass: HomeAssistant, setup_integration: None) -> None:
     state = hass.states.get("calendar.my_journal")
     assert state is not None
     assert state.state == "off"
+    assert  dict(state.attributes) == {
+        "friendly_name": "My Journal",
+    }
