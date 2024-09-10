@@ -1,15 +1,18 @@
 """A journal calendar component."""
 
+import datetime
+
 from homeassistant.components.calendar import CalendarEntity, CalendarEvent
 from homeassistant.const import CONF_NAME
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_entities,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the journal calendar component."""
     async_add_entities([JournalCalendar(entry)])
@@ -30,6 +33,11 @@ class JournalCalendar(CalendarEntity):
         """Return the events of the calendar."""
         return None
 
-    async def async_get_events(self, *args, **kwargs) -> list[CalendarEvent]:
-        """Get the events of the calendar."""
+    async def async_get_events(
+        self,
+        hass: HomeAssistant,
+        start_date: datetime.datetime,
+        end_date: datetime.datetime,
+    ) -> list[CalendarEvent]:
+        """Return calendar events within a datetime range."""
         return []
