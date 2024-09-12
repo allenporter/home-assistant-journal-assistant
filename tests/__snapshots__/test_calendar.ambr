@@ -1,0 +1,61 @@
+# serializer version: 1
+# name: test_calendar
+  list([
+    tuple(
+      dict({
+        'date': '2023-12-19',
+      }),
+      dict({
+        'date': '2023-12-20',
+      }),
+      'Daily 2023-12-19',
+      '''
+        - migrate Dec to supernote
+        - set Plans w/ mom
+        - call Dad re xmas plan
+        - gifts info to mom & Sam
+        - prod readiness pass
+        - xmas tree
+        - Dot template: darker 5mm
+      ''',
+    ),
+    tuple(
+      dict({
+        'date': '2023-12-20',
+      }),
+      dict({
+        'date': '2023-12-21',
+      }),
+      'Daily 2023-12-20',
+      '''
+        - xmas tree
+        - text mom for xmas day
+        - call Dad: xmas plans
+        - gifts plan w/ Cathrine
+        - recognition vs old notes
+        - living room clutter
+        - okay of the house activity
+        - super note box clean up
+        - flux-local helm magic
+      ''',
+    ),
+    tuple(
+      dict({
+        'date': '2023-12-21',
+      }),
+      dict({
+        'date': '2023-12-22',
+      }),
+      'Daily 2023-12-21',
+      '''
+        - cardboard breakdown
+        - Bowling w/ Q
+        - flux-local helm
+        - todo urls?
+        - gifts plan
+        - windows xmas lights
+        - fitbit python
+      ''',
+    ),
+  ])
+# ---

@@ -26,15 +26,20 @@ See https://github.com/allenporter/supernote-llm
   - [ ] Structured output => Journal demo
 - [ ] Create monthly journal entity
 - [ ] Create weekly journal entity
-- [ ] Create daily journal entity (tasks?)
+- [x] Create daily journal entity (tasks?)
 - [ ] Create other journal entries by date created
 - Given a directory of notebook yaml contents:
-  - [ ] Read the notebook file
-  - [ ] Read through notes grouped by date
-  - [ ] Check for journal entry on date
-  - [ ] Create journal entry if it does not already exist
-  - [ ] Add content to the journal entry
+  - [x] Read the notebook file
+  - [x] Read through notes grouped by date
+  - [x] Check for journal entry on date
+  - [x] Create journal entry if it does not already exist
+  - [x] Add content to the journal entry
+- [ ] Test out monthly review
+- [ ] Test out monthly rapid log
+- [ ] Test out weekly review
+- [ ] Test out weekly rapid log
 
 Future work:
+
 - [ ] media source for syncing down from device
 - [ ] vector search from a calendar

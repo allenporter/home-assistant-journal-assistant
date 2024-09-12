@@ -1,13 +1,11 @@
 """Data model for bullet journal llm."""
 
 import pathlib
-import textwrap
 from typing import Any
 
 import yaml
 from dataclasses import dataclass, field
-from mashumaro import DataClassDictMixin
-from mashumaro.config import BaseConfig, TO_DICT_ADD_OMIT_NONE_FLAG
+from mashumaro.config import BaseConfig
 from mashumaro.mixins.yaml import DataClassYAMLMixin
 from mashumaro.mixins.json import DataClassJSONMixin
 
@@ -31,14 +29,13 @@ class Prompt(DataClassYAMLMixin, DataClassJSONMixin):
         if self.created_at:
             parts.append(f"created_at: {self.created_at}")
         if self.content:
-            parts.append(f"content:")
+            parts.append("content:")
             parts.append(self.content)
         return "\n".join(parts)
 
-
     class Config(BaseConfig):
         omit_none = False
-        code_generation_options = [TO_DICT_ADD_OMIT_NONE_FLAG]
+        code_generation_options = ["TO_DICT_ADD_OMIT_NONE_FLAG"]
 
 
 @dataclass
@@ -55,8 +52,7 @@ class RapidLogEntry:
 
     class Config(BaseConfig):
         omit_none = False
-        code_generation_options = [TO_DICT_ADD_OMIT_NONE_FLAG]
-
+        code_generation_options = ["TO_DICT_ADD_OMIT_NONE_FLAG"]
 
 
 @dataclass
@@ -72,7 +68,7 @@ class JournalPage(DataClassYAMLMixin, DataClassJSONMixin):
 
     class Config(BaseConfig):
         omit_none = False
-        code_generation_options = [TO_DICT_ADD_OMIT_NONE_FLAG]
+        code_generation_options = ["TO_DICT_ADD_OMIT_NONE_FLAG"]
 
 
 @dataclass
@@ -98,11 +94,10 @@ class DynamicPrompt(DataClassYAMLMixin, DataClassJSONMixin):
 
     def as_prompt(self) -> str:
         """Return the prompt."""
-        return "\n\n".join([
-            self.prompt.as_prompt(),
-            *(page.to_json() for page in self.pages)
-        ])
+        return "\n\n".join(
+            [self.prompt.as_prompt(), *(str(page.to_json()) for page in self.pages)]
+        )
 
     class Config(BaseConfig):
         omit_none = False
-        code_generation_options = [TO_DICT_ADD_OMIT_NONE_FLAG]
+        code_generation_options = ["TO_DICT_ADD_OMIT_NONE_FLAG"]

@@ -3,6 +3,7 @@
 from collections.abc import Generator, AsyncGenerator
 import logging
 from unittest.mock import patch
+from pathlib import Path
 
 import pytest
 
@@ -15,7 +16,8 @@ from pytest_homeassistant_custom_component.common import (
 )
 
 from custom_components.journal_assistant.const import (
-    DOMAIN, CONF_MEDIA_SOURCE,
+    DOMAIN,
+    CONF_MEDIA_SOURCE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -36,12 +38,23 @@ def mock_platforms() -> list[Platform]:
     return []
 
 
+@pytest.fixture(name="storage_path")
+def mock_storage_path() -> Generator[None, None, None]:
+    """Fake out the storage path to load from the fixtures directory."""
+    with patch(
+        f"custom_components.{DOMAIN}.calendar.storage_path",
+        return_value=Path("tests/fixtures/"),
+    ):
+        yield
+
+
 @pytest.fixture(name="setup_integration")
 async def mock_setup_integration(
     hass: HomeAssistant,
+    storage_path: None,
     config_entry: MockConfigEntry,
     platforms: list[Platform],
-) -> AsyncGenerator[None]:
+) -> AsyncGenerator[None, None]:
     """Set up the integration."""
 
     with patch(f"custom_components.{DOMAIN}.PLATFORMS", platforms):

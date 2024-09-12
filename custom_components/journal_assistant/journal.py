@@ -1,29 +1,25 @@
 """Converter from yaml journal files to an RFC5545 Journal."""
 
 from pathlib import Path
+import datetime
+import logging
 
 from ical.calendar import Calendar
 from ical.journal import Journal
-from .model import JournalPage, RapidLogEntry
+from .model import JournalPage
 
 
-JOURNAL_PREFIXES = {
-    "Daily",
-    "Monthly",
-    "Weekly",
-    "FutureLog",
-}
-
+_LOGGER = logging.getLogger(__name__)
 
 
 def journal_from_yaml(storage_dir: Path) -> dict[str, Calendar]:
     """Convert a yaml journal to an RFC5545 Journal."""
-
+    _LOGGER.debug("Loading journal content from %s", storage_dir)
     # Get the unique list of journal names
     journal_names = {
-        filename.name.split("-")[0]
-        for filename in storage_dir.glob("*.yaml")
+        filename.name.split("-")[0] for filename in storage_dir.glob("*.yaml")
     }
+    _LOGGER.debug("Journal names: %s", journal_names)
 
     journals = {}
 
@@ -36,14 +32,14 @@ def journal_from_yaml(storage_dir: Path) -> dict[str, Calendar]:
                 page = JournalPage.from_yaml(file.read())
             pages.append(page)
 
-        dated_content = {}
+        dated_content: dict[str, list[str]] = {}
         for page in pages:
             content = str(page.content)
-            for note in page.records:
+            for note in page.records or ():
                 if note.date is not None:
                     if note.date not in dated_content:
-                        dated_content[note.date] = ""
-                    dated_content[note.date] += note.content
+                        dated_content[note.date] = []
+                    dated_content[note.date].append(f"- {note.content}")
                 else:
                     content += note.content
 
@@ -52,10 +48,11 @@ def journal_from_yaml(storage_dir: Path) -> dict[str, Calendar]:
 
         # Add a journal entry for each date
         calendar = journals[journal_name]
-        for date, content in dated_content.items():
+        for date, content_list in dated_content.items():
             journal = Journal()
-            journal.dtstart = date
-            journal.description = content
+            journal.summary = f"{journal_name} {date}"
+            journal.dtstart = datetime.date.fromisoformat(date)
+            journal.description = "\n".join(content_list)
             calendar.journal.append(journal)
 
         journals[journal_name] = calendar
