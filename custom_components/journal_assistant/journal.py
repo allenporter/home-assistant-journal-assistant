@@ -12,6 +12,18 @@ from .model import JournalPage
 _LOGGER = logging.getLogger(__name__)
 
 
+def journal_pages(storage_dir: Path, journal_name: str) -> list[JournalPage]:
+    """Load all journal pages from a storage directory with the specified journal prefix."""
+    pages = []
+    files = list(storage_dir.glob(f"{journal_name}-*.yaml"))
+    files.sort()
+    for filename in files:
+        with filename.open() as file:
+            page = JournalPage.from_yaml(file.read())
+        pages.append(page)
+    return pages
+
+
 def journal_from_yaml(storage_dir: Path) -> dict[str, Calendar]:
     """Convert a yaml journal to an RFC5545 Journal."""
     _LOGGER.debug("Loading journal content from %s", storage_dir)
@@ -28,24 +40,21 @@ def journal_from_yaml(storage_dir: Path) -> dict[str, Calendar]:
     for journal_name in keys:
 
         # Load all pages from with the same journal prefix
-        pages = []
-        files = list(storage_dir.glob(f"{journal_name}-*.yaml"))
-        files.sort()
-        for filename in files:
-            with filename.open() as file:
-                page = JournalPage.from_yaml(file.read())
-            pages.append(page)
+        pages = journal_pages(storage_dir, journal_name)
 
         dated_content: dict[str, list[str]] = {}
         for page in pages:
             content = str(page.content)
-            for note in page.records or ():
-                if note.date is not None:
-                    if note.date not in dated_content:
-                        dated_content[note.date] = []
-                    dated_content[note.date].append(f"- {note.content}")
-                else:
-                    content += note.content
+            if page.records:
+                for note in page.records:
+                    if note.date is not None:
+                        if note.date not in dated_content:
+                            dated_content[note.date] = []
+                        dated_content[note.date].append(f"- {note.content}")
+                    else:
+                        content += note.content
+            else:
+                dated_content[page.created_at] = [page.content]
 
         if journal_name not in journals:
             journals[journal_name] = Calendar()
@@ -55,7 +64,10 @@ def journal_from_yaml(storage_dir: Path) -> dict[str, Calendar]:
         for date, content_list in dated_content.items():
             journal = Journal()
             journal.summary = f"{journal_name} {date}"
-            journal.dtstart = datetime.date.fromisoformat(date)
+            if "T" in date:
+                journal.dtstart = datetime.datetime.fromisoformat(date)
+            else:
+                journal.dtstart = datetime.date.fromisoformat(date)
             journal.description = "\n".join(content_list)
             calendar.journal.append(journal)
 
