@@ -52,7 +52,7 @@ class JournalCalendar(CalendarEntity):
     ) -> None:
         """Initialize the journal calendar component."""
         self._entry = entry
-        self._attr_name = entry.data[CONF_NAME] + ": " + journal_name
+        self._attr_name = entry.options[CONF_NAME] + ": " + journal_name
         self._calendar = calendar
         self._event: CalendarEvent | None = None
 

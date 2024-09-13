@@ -69,12 +69,12 @@ async def mock_config_entry(
 ) -> MockConfigEntry:
     """Fixture to create a configuration entry."""
     config_entry = MockConfigEntry(
-        data={
+        data={},
+        domain=DOMAIN,
+        options={
             CONF_NAME: "My Journal",
             CONF_MEDIA_SOURCE: "media-source://example",
         },
-        domain=DOMAIN,
-        options={},
         title="My Journal",
     )
     config_entry.add_to_hass(hass)
