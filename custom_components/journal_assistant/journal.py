@@ -24,6 +24,21 @@ def journal_pages(storage_dir: Path, journal_name: str) -> list[JournalPage]:
     return pages
 
 
+def get_dated_content(page: JournalPage) -> dict[str, list[str]]:
+    """Get the date and content from a journal page."""
+    default_date = page.date or page.created_at
+    if not page.records:
+        return {default_date: [str(page.content)]}
+
+    dated_content: dict[str, list[str]] = {}
+    for note in page.records:
+        note_date = note.date or default_date
+        if note_date not in dated_content:
+            dated_content[note_date] = []
+        dated_content[note_date].append(f"- {note.content}")
+    return dated_content
+
+
 def journal_from_yaml(storage_dir: Path) -> dict[str, Calendar]:
     """Convert a yaml journal to an RFC5545 Journal."""
     _LOGGER.debug("Loading journal content from %s", storage_dir)
@@ -44,16 +59,7 @@ def journal_from_yaml(storage_dir: Path) -> dict[str, Calendar]:
 
         dated_content: dict[str, list[str]] = {}
         for page in pages:
-            content = str(page.content)
-            default_date = page.date or page.created_at
-            if page.records:
-                for note in page.records:
-                    note_date = note.date or default_date
-                    if note_date not in dated_content:
-                        dated_content[note_date] = []
-                    dated_content[note_date].append(f"- {note.content}")
-            else:
-                dated_content[default_date] = [page.content]
+            dated_content.update(get_dated_content(page))
 
         if journal_name not in journals:
             journals[journal_name] = Calendar()
