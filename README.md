@@ -43,3 +43,18 @@ Future work:
 
 - [ ] media source for syncing down from device
 - [ ] vector search from a calendar
+
+## Local Development
+
+First time, prepare the environment:
+
+```bash
+$ export PYTHONPATH="${PYTHONPATH}:${PWD}"
+$ hass -c config --script ensure_config
+```
+
+From then on run home assistant:
+
+```bash
+$ hass -c config
+```

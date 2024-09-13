@@ -1,5 +1,7 @@
 """Tests for the journal_assistant component."""
 
+import pytest
+
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 
@@ -8,8 +10,10 @@ from pytest_homeassistant_custom_component.common import (
 )
 
 
+@pytest.mark.usefixtures("setup_integration")
 async def test_init(
-    hass: HomeAssistant, config_entry: MockConfigEntry, setup_integration: None
+    hass: HomeAssistant,
+    config_entry: MockConfigEntry,
 ) -> None:
     """Setup the integration"""
 

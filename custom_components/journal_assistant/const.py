@@ -10,3 +10,5 @@ DEFAULT_NOTES = [
     "Monthly",
 ]
 DEFAULT_NOTE_NAME = "Journal"
+
+CONF_CONFIG_ENTRY_ID = "config_entry_id"

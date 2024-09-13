@@ -1,0 +1,13 @@
+process_media:
+  fields:
+    media_source:
+      required: true
+      description: The media source uri path to process
+      example: "media-source://media_source/local/notebook/2021/Daily-01.png"
+      selector:
+        text:
+    config_entry_id:
+      required: true
+      selector:
+        config_entry:
+          integration: journal_assistant
