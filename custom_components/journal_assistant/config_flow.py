@@ -10,13 +10,14 @@ import voluptuous as vol
 from homeassistant.const import CONF_NAME
 from homeassistant.helpers import (
     config_validation as cv,
+    selector,
 )
 from homeassistant.helpers.schema_config_entry_flow import (
     SchemaConfigFlowHandler,
     SchemaFlowFormStep,
 )
 
-from .const import DOMAIN, CONF_MEDIA_SOURCE
+from .const import DOMAIN, CONF_MEDIA_SOURCE, CONF_NOTES, DEFAULT_NOTES
 
 
 CONFIG_FLOW = {
@@ -25,6 +26,9 @@ CONFIG_FLOW = {
             {
                 vol.Required(CONF_NAME): cv.string,
                 vol.Required(CONF_MEDIA_SOURCE): cv.string,
+                vol.Required(
+                    CONF_NOTES, default="\n".join(DEFAULT_NOTES)
+                ): selector.TextSelector(selector.TextSelectorConfig(multiline=True)),
             }
         )
     )

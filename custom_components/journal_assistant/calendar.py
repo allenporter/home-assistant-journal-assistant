@@ -16,11 +16,12 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN
+from .const import DOMAIN, CONF_NOTES
 from .journal import journal_from_yaml
 
 _LOGGER = logging.getLogger(__name__)
 
+UPDATE_INTERVAL = datetime.timedelta(minutes=15)
 STORAGE_PATH = f"{DOMAIN}/data"
 
 
@@ -37,7 +38,11 @@ async def async_setup_entry(
 ) -> None:
     """Set up the journal calendar component."""
     _LOGGER.debug("Setting up journal calendar component")
-    entries = await hass.async_add_executor_job(journal_from_yaml, storage_path(hass))
+    entries = await hass.async_add_executor_job(
+        journal_from_yaml,
+        storage_path(hass),
+        set(entry.options[CONF_NOTES].split("\n")),
+    )
 
     for journal_name, calendar in entries.items():
         async_add_entities([JournalCalendar(entry, journal_name, calendar)])

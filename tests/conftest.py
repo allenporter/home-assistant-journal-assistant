@@ -18,6 +18,7 @@ from pytest_homeassistant_custom_component.common import (
 from custom_components.journal_assistant.const import (
     DOMAIN,
     CONF_MEDIA_SOURCE,
+    CONF_NOTES,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -74,6 +75,7 @@ async def mock_config_entry(
         options={
             CONF_NAME: "My Journal",
             CONF_MEDIA_SOURCE: "media-source://example",
+            CONF_NOTES: "Daily\nWeekly\nMonthly",
         },
         title="My Journal",
     )

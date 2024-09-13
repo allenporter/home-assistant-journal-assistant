@@ -34,10 +34,10 @@ See https://github.com/allenporter/supernote-llm
   - [x] Check for journal entry on date
   - [x] Create journal entry if it does not already exist
   - [x] Add content to the journal entry
-- [ ] Test out monthly review
-- [ ] Test out monthly rapid log
-- [ ] Test out weekly review
-- [ ] Test out weekly rapid log
+- [x] Test out monthly review
+- [x] Test out monthly rapid log
+- [x] Test out weekly review
+- [x] Test out weekly rapid log
 
 Future work:
 

@@ -8,7 +8,11 @@ from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_NAME
 
 
-from custom_components.journal_assistant.const import DOMAIN, CONF_MEDIA_SOURCE
+from custom_components.journal_assistant.const import (
+    DOMAIN,
+    CONF_MEDIA_SOURCE,
+    CONF_NOTES,
+)
 
 
 async def test_select_device(
@@ -39,5 +43,6 @@ async def test_select_device(
     assert result.get("options") == {
         CONF_NAME: "Title",
         CONF_MEDIA_SOURCE: "media-source://example",
+        CONF_NOTES: "Daily\nWeekly\nMonthly",
     }
     assert len(mock_setup.mock_calls) == 1

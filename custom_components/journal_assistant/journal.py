@@ -6,8 +6,9 @@ import logging
 
 from ical.calendar import Calendar
 from ical.journal import Journal
-from .model import JournalPage
 
+from .model import JournalPage
+from .const import DEFAULT_NOTE_NAME
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -39,36 +40,40 @@ def get_dated_content(page: JournalPage) -> dict[str, list[str]]:
     return dated_content
 
 
-def journal_from_yaml(storage_dir: Path) -> dict[str, Calendar]:
+def journal_from_yaml(
+    storage_dir: Path, allowed_notes: set[str]
+) -> dict[str, Calendar]:
     """Convert a yaml journal to an RFC5545 Journal."""
     _LOGGER.debug("Loading journal content from %s", storage_dir)
     # Get the unique list of journal names
-    journal_names = {
+    filename_prefixes = {
         filename.name.split("-")[0] for filename in storage_dir.glob("*.yaml")
     }
-    _LOGGER.debug("Journal names: %s", journal_names)
+    note_names = list(filename_prefixes)
+    note_names.sort()
+    _LOGGER.debug("Journal names: %s", note_names)
 
     journals = {}
-
-    keys = list(journal_names)
-    keys.sort()
-    for journal_name in keys:
+    for note_name in note_names:
 
         # Load all pages from with the same journal prefix
-        pages = journal_pages(storage_dir, journal_name)
+        pages = journal_pages(storage_dir, note_name)
+
+        # Allow notes to have their own calendar entry if in the list of allowed notes
+        key_name = note_name if note_name in allowed_notes else DEFAULT_NOTE_NAME
 
         dated_content: dict[str, list[str]] = {}
         for page in pages:
             dated_content.update(get_dated_content(page))
 
-        if journal_name not in journals:
-            journals[journal_name] = Calendar()
+        if key_name not in journals:
+            journals[key_name] = Calendar()
 
         # Add a journal entry for each date
-        calendar = journals[journal_name]
+        calendar = journals[key_name]
         for date, content_list in dated_content.items():
             journal = Journal()
-            journal.summary = f"{journal_name} {date}"
+            journal.summary = f"{note_name} {date}"
             if "T" in date:
                 journal.dtstart = datetime.datetime.fromisoformat(date)
             else:
@@ -76,6 +81,6 @@ def journal_from_yaml(storage_dir: Path) -> dict[str, Calendar]:
             journal.description = "\n".join(content_list)
             calendar.journal.append(journal)
 
-        journals[journal_name] = calendar
+        journals[key_name] = calendar
 
     return journals

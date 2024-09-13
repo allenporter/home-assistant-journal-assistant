@@ -9,8 +9,8 @@ from custom_components.journal_assistant.journal import journal_from_yaml
 def test_parse_journal_as_calendar() -> None:
     """Test parsing a journal page."""
 
-    entries = journal_from_yaml(Path("tests/fixtures"))
-    assert entries.keys() == {"Daily", "Homelab", "Monthly"}
+    entries = journal_from_yaml(Path("tests/fixtures"), {"Daily", "Monthly"})
+    assert entries.keys() == {"Daily", "Journal", "Monthly"}
 
     assert [entry.dtstart for entry in entries["Daily"].journal] == [
         datetime.date(2023, 12, 19),
@@ -19,8 +19,7 @@ def test_parse_journal_as_calendar() -> None:
         datetime.date(2023, 12, 22),
     ]
 
-
-    assert [entry.dtstart for entry in entries["Homelab"].journal] == [
+    assert [entry.dtstart for entry in entries["Journal"].journal] == [
         datetime.datetime(2023, 12, 23, 17, 18, 11, 138118),
     ]
 
