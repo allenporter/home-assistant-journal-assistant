@@ -1,7 +1,7 @@
 {
   "title": "Journal Assistant",
   "services": {
-    "ingest_media": {
+    "process_media": {
       "name": "Process Media",
       "description": "Process media and injest into the journal assistant.",
       "fields": {
