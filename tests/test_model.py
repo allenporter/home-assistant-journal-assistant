@@ -2,8 +2,7 @@
 
 from pathlib import Path
 
-from custom_components.journal_assistant.model import JournalPage, RapidLogEntry
-from custom_components.journal_assistant.const import DOMAIN
+from custom_components.journal_assistant.model import JournalPage
 
 
 def test_journal_page() -> None:
