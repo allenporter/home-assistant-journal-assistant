@@ -25,6 +25,17 @@ See https://github.com/allenporter/supernote-llm
   - [ ] Multi-modal call that outputs yaml structured output
   - [ ] (re)process a media uri on demand
   - [ ] Structured output => Journal demo
+  - [ ] Queue for processing media content
+- State management
+  - [ ] Metatadata store of media source uri sources
+  - [ ] Compute hashes of media source content to determine changes
+  - [ ] Persist journal in .ics
+  - [ ] Merge existing journal contents with ingested processed media
+- Visibility
+  - [ ] Entities associated with a device service
+  - [ ] Sensors exporting diagnostic information like last time processed
+  - [ ] Sensor exporting # of journal entries
+  - [ ] Event entities? exposed when content is updated
 - [x] Create monthly journal entity
 - [x] Create weekly journal entity
 - [x] Create daily journal entity (tasks?)
