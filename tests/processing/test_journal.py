@@ -3,13 +3,13 @@
 import datetime
 from pathlib import Path
 
-from custom_components.journal_assistant.journal import journal_from_yaml
+from custom_components.journal_assistant.processing.journal import journal_from_yaml
 
 
 def test_parse_journal_as_calendar() -> None:
     """Test parsing a journal page."""
 
-    entries = journal_from_yaml(Path("tests/fixtures"), {"Daily", "Monthly"})
+    entries = journal_from_yaml(Path("tests/fixtures"), {"Daily", "Monthly"}, "Journal")
     assert entries.keys() == {"Daily", "Journal", "Monthly"}
 
     assert [entry.dtstart for entry in entries["Daily"].journal] == [

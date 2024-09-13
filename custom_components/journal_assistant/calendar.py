@@ -16,8 +16,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN, CONF_NOTES
-from .journal import journal_from_yaml
+from .const import DOMAIN, CONF_NOTES, DEFAULT_NOTE_NAME
+from .processing.journal import journal_from_yaml
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -42,6 +42,7 @@ async def async_setup_entry(
         journal_from_yaml,
         storage_path(hass),
         set(entry.options[CONF_NOTES].split("\n")),
+        DEFAULT_NOTE_NAME,
     )
 
     for journal_name, calendar in entries.items():

@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from custom_components.journal_assistant.model import JournalPage
+from custom_components.journal_assistant.processing.model import JournalPage
 
 
 def test_journal_page() -> None:
