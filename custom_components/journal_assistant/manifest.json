@@ -7,6 +7,6 @@
   "integration_type": "service",
   "iot_class": "calculated",
   "issue_tracker": "https://github.com/allenporter/home-assistant-journal-asssistant/issues",
-  "version": "0.0.1",
-  "requirements": ["ical>=8.2.0"]
+  "requirements": ["ical>=8.2.0"],
+  "version": "0.0.1"
 }
