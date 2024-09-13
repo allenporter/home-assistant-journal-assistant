@@ -31,6 +31,10 @@ See https://github.com/allenporter/supernote-llm
 - [x] Test out monthly rapid log
 - [x] Test out weekly review
 - [x] Test out weekly rapid log
+- Documentation
+  - [ ] Update with a screenshot of current state
+  - [ ] Diagram with the workflow involved
+  - [ ] Explanation of LLM prompts and details on bullet journal formats
 - Processing
   - [ ] conversation agent in config flow
   - [x] Create output storage directory for yaml
