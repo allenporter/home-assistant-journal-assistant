@@ -3,6 +3,7 @@
 import urllib
 from http import HTTPStatus
 
+import pytest
 from syrupy import SnapshotAssertion
 
 from homeassistant.core import HomeAssistant
@@ -12,7 +13,7 @@ from pytest_homeassistant_custom_component.typing import (
 )
 
 
-@pytest.mark.usefixtures("setup_integration"
+@pytest.mark.usefixtures("setup_integration")
 async def test_calendar(
     hass: HomeAssistant,
     hass_client: ClientSessionGenerator,

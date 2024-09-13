@@ -8,7 +8,7 @@
         "media_source": {
           "name": "Media source uri path",
           "description": "Path to the image or video to upload as a uri",
-          "example": "media-source://media_source/<path>"
+          "example": "media-source://media_source/path"
         },
         "config_entry_id": {
           "name": "Integration Id",
