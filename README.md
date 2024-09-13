@@ -18,9 +18,10 @@ See https://github.com/allenporter/supernote-llm
 
 - [x] Initial dummy calendar
 - Processing
-  - [ ] media-source input config flow
   - [ ] conversation agent in config flow
-  - [ ] Create output storage directory for yaml
+  - [x] Create output storage directory for yaml
+  - [ ] Call conversation agent with placeholder prompt
+  - [ ] Storage area for dynamic prompts
   - [ ] Multi-modal call that outputs yaml structured output
   - [ ] (re)process a media uri on demand
   - [ ] Structured output => Journal demo
