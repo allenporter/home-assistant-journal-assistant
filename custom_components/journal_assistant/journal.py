@@ -45,16 +45,15 @@ def journal_from_yaml(storage_dir: Path) -> dict[str, Calendar]:
         dated_content: dict[str, list[str]] = {}
         for page in pages:
             content = str(page.content)
+            default_date = page.date or page.created_at
             if page.records:
                 for note in page.records:
-                    if note.date is not None:
-                        if note.date not in dated_content:
-                            dated_content[note.date] = []
-                        dated_content[note.date].append(f"- {note.content}")
-                    else:
-                        content += note.content
+                    note_date = note.date or default_date
+                    if note_date not in dated_content:
+                        dated_content[note_date] = []
+                    dated_content[note_date].append(f"- {note.content}")
             else:
-                dated_content[page.created_at] = [page.content]
+                dated_content[default_date] = [page.content]
 
         if journal_name not in journals:
             journals[journal_name] = Calendar()
