@@ -3,6 +3,7 @@
 import datetime
 import logging
 from pathlib import Path
+import slugify
 
 from ical.calendar import Calendar
 from ical.journal import Journal
@@ -36,7 +37,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up the journal calendar component."""
     _LOGGER.debug("Setting up journal calendar component")
-    entries = journal_from_yaml(storage_path(hass))
+    entries = await hass.async_add_executor_job(journal_from_yaml, storage_path(hass))
 
     for journal_name, calendar in entries.items():
         async_add_entities([JournalCalendar(entry, journal_name, calendar)])
@@ -51,6 +52,7 @@ class JournalCalendar(CalendarEntity):
         self, entry: ConfigEntry, journal_name: str, calendar: Calendar
     ) -> None:
         """Initialize the journal calendar component."""
+        self._attr_unique_id = f"{entry.entry_id}-{slugify.slugify(journal_name)}"
         self._entry = entry
         self._attr_name = entry.options[CONF_NAME] + ": " + journal_name
         self._calendar = calendar
