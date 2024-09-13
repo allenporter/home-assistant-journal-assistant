@@ -24,10 +24,10 @@ See https://github.com/allenporter/supernote-llm
   - [ ] Multi-modal call that outputs yaml structured output
   - [ ] (re)process a media uri on demand
   - [ ] Structured output => Journal demo
-- [ ] Create monthly journal entity
-- [ ] Create weekly journal entity
+- [x] Create monthly journal entity
+- [x] Create weekly journal entity
 - [x] Create daily journal entity (tasks?)
-- [ ] Create other journal entries by date created
+- [x] Create other journal entries by date created
 - Given a directory of notebook yaml contents:
   - [x] Read the notebook file
   - [x] Read through notes grouped by date
