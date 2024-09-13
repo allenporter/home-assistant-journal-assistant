@@ -44,7 +44,9 @@ def get_dated_content(page: JournalPage) -> dict[str, list[str]]:
 
 
 def journal_from_yaml(
-    storage_dir: Path, allowed_notes: set[str], default_note_name: str,
+    storage_dir: Path,
+    allowed_notes: set[str],
+    default_note_name: str,
 ) -> dict[str, Calendar]:
     """Convert a yaml journal to an RFC5545 Journal."""
     _LOGGER.debug("Loading journal content from %s", storage_dir)

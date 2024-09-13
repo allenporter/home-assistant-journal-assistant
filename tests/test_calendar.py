@@ -12,9 +12,9 @@ from pytest_homeassistant_custom_component.typing import (
 )
 
 
+@pytest.mark.usefixtures("setup_integration"
 async def test_calendar(
     hass: HomeAssistant,
-    setup_integration: None,
     hass_client: ClientSessionGenerator,
     snapshot: SnapshotAssertion,
 ) -> None:
