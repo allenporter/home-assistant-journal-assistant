@@ -29,7 +29,9 @@ def journal_from_yaml(storage_dir: Path) -> dict[str, Calendar]:
 
         # Load all pages from with the same journal prefix
         pages = []
-        for filename in storage_dir.glob(f"{journal_name}-*.yaml"):
+        files = list(storage_dir.glob(f"{journal_name}-*.yaml"))
+        files.sort()
+        for filename in files:
             with filename.open() as file:
                 page = JournalPage.from_yaml(file.read())
             pages.append(page)
