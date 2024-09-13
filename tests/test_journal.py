@@ -20,4 +20,5 @@ def test_parse_journal_as_calendar() -> None:
         datetime.date(2023, 12, 19),
         datetime.date(2023, 12, 20),
         datetime.date(2023, 12, 21),
+        datetime.date(2023, 12, 22),
     ]
