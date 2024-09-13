@@ -17,6 +17,20 @@ See https://github.com/allenporter/supernote-llm
 ## Development plan
 
 - [x] Initial dummy calendar
+- [x] Create monthly journal entity
+- [x] Create weekly journal entity
+- [x] Create daily journal entity (tasks?)
+- [x] Create other journal entries by date created
+- Given a directory of notebook yaml contents:
+  - [x] Read the notebook file
+  - [x] Read through notes grouped by date
+  - [x] Check for journal entry on date
+  - [x] Create journal entry if it does not already exist
+  - [x] Add content to the journal entry
+- [x] Test out monthly review
+- [x] Test out monthly rapid log
+- [x] Test out weekly review
+- [x] Test out weekly rapid log
 - Processing
   - [ ] conversation agent in config flow
   - [x] Create output storage directory for yaml
@@ -36,20 +50,11 @@ See https://github.com/allenporter/supernote-llm
   - [ ] Sensors exporting diagnostic information like last time processed
   - [ ] Sensor exporting # of journal entries
   - [ ] Event entities? exposed when content is updated
-- [x] Create monthly journal entity
-- [x] Create weekly journal entity
-- [x] Create daily journal entity (tasks?)
-- [x] Create other journal entries by date created
-- Given a directory of notebook yaml contents:
-  - [x] Read the notebook file
-  - [x] Read through notes grouped by date
-  - [x] Check for journal entry on date
-  - [x] Create journal entry if it does not already exist
-  - [x] Add content to the journal entry
-- [x] Test out monthly review
-- [x] Test out monthly rapid log
-- [x] Test out weekly review
-- [x] Test out weekly rapid log
+- Journal Entity
+  - [ ] Update tests to use service calls for reads
+  - [ ] Support for additions to a journal (calendar)
+  - [ ] Support for writes to a journal (calendar)
+  - [ ] Support for edits to a journal (calendar)
 
 Future work:
 
