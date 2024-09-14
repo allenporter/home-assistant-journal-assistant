@@ -10,7 +10,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 
-from .const import CONF_MEDIA_SOURCE, CONF_CONFIG_ENTRY_ID, DOMAIN, CONF_CONVERSATION_AGENT_ID
+from .const import CONF_MEDIA_SOURCE, CONF_CONFIG_ENTRY_ID, DOMAIN
 
 
 MEDIA_SOURCE_URI_RE = re.compile(r"media-source://media_source/.+")
@@ -49,9 +49,6 @@ def async_register_services(hass: HomeAssistant) -> None:
                 translation_key="integration_not_found",
                 translation_placeholders={"target": DOMAIN},
             )
-
-
-
 
     if not hass.services.has_service(DOMAIN, PROCESS_MEDIA_SERVICE):
         hass.services.async_register(

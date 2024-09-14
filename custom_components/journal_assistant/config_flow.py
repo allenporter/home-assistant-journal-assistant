@@ -19,10 +19,8 @@ from homeassistant.helpers.schema_config_entry_flow import (
 
 from .const import (
     DOMAIN,
-    CONF_MEDIA_SOURCE,
     CONF_NOTES,
     DEFAULT_NOTES,
-    CONF_CONVERSATION_AGENT_ID,
 )
 
 

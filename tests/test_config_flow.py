@@ -10,9 +10,7 @@ from homeassistant.const import CONF_NAME
 
 from custom_components.journal_assistant.const import (
     DOMAIN,
-    CONF_MEDIA_SOURCE,
     CONF_NOTES,
-    CONF_CONVERSATION_AGENT_ID,
 )
 
 
