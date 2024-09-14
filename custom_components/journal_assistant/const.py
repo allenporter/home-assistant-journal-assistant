@@ -4,6 +4,7 @@ DOMAIN = "journal_assistant"
 
 CONF_MEDIA_SOURCE = "media_source"
 CONF_NOTES = "notes"
+CONF_CONVERSATION_AGENT_ID = "conversation_agent_id"
 DEFAULT_NOTES = [
     "Daily",
     "Weekly",

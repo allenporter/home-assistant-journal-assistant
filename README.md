@@ -36,16 +36,16 @@ See https://github.com/allenporter/supernote-llm
   - [ ] Diagram with the workflow involved
   - [ ] Explanation of LLM prompts and details on bullet journal formats
 - Processing
-  - [ ] conversation agent in config flow
+  - [x] conversation agent in config flow
   - [x] Create output storage directory for yaml
   - [ ] Call conversation agent with placeholder prompt
-  - [ ] Storage area for dynamic prompts
+  - [x] Storage area for dynamic prompts
   - [ ] Multi-modal call that outputs yaml structured output
   - [ ] (re)process a media uri on demand
   - [ ] Structured output => Journal demo
   - [ ] Queue for processing media content
 - State management
-  - [ ] Metatadata store of media source uri sources
+  - [ ] Metadata store of media source uri sources
   - [ ] Compute hashes of media source content to determine changes
   - [ ] Persist journal in .ics
   - [ ] Merge existing journal contents with ingested processed media

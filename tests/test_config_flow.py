@@ -12,6 +12,7 @@ from custom_components.journal_assistant.const import (
     DOMAIN,
     CONF_MEDIA_SOURCE,
     CONF_NOTES,
+    CONF_CONVERSATION_AGENT_ID,
 )
 
 
@@ -33,6 +34,7 @@ async def test_select_device(
             {
                 CONF_NAME: "Title",
                 CONF_MEDIA_SOURCE: "media-source://example",
+                CONF_CONVERSATION_AGENT_ID: "conversation_agent.example",
             },
         )
         await hass.async_block_till_done()
@@ -44,5 +46,6 @@ async def test_select_device(
         CONF_NAME: "Title",
         CONF_MEDIA_SOURCE: "media-source://example",
         CONF_NOTES: "Daily\nWeekly\nMonthly",
+        CONF_CONVERSATION_AGENT_ID: "conversation_agent.example",
     }
     assert len(mock_setup.mock_calls) == 1

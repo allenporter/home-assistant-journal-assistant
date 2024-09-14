@@ -17,7 +17,13 @@ from homeassistant.helpers.schema_config_entry_flow import (
     SchemaFlowFormStep,
 )
 
-from .const import DOMAIN, CONF_MEDIA_SOURCE, CONF_NOTES, DEFAULT_NOTES
+from .const import (
+    DOMAIN,
+    CONF_MEDIA_SOURCE,
+    CONF_NOTES,
+    DEFAULT_NOTES,
+    CONF_CONVERSATION_AGENT_ID,
+)
 
 
 CONFIG_FLOW = {
@@ -25,6 +31,9 @@ CONFIG_FLOW = {
         vol.Schema(
             {
                 vol.Required(CONF_NAME): cv.string,
+                vol.Required(CONF_CONVERSATION_AGENT_ID): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain="conversation_agent")
+                ),
                 vol.Required(CONF_MEDIA_SOURCE): cv.string,
                 vol.Required(
                     CONF_NOTES, default="\n".join(DEFAULT_NOTES)
