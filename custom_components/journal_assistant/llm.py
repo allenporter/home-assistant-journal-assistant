@@ -1,11 +1,12 @@
 """LLM APIs for Journal Assistant."""
 
+import logging
 
+import yaml
 import voluptuous as vol
 
 from homeassistant.helpers.llm import API, LLMContext, APIInstance, async_register_api
 from homeassistant.helpers import (
-    entity_registry as er,
     config_validation as cv,
 )
 from homeassistant.core import HomeAssistant, callback
@@ -13,6 +14,15 @@ from homeassistant.helpers.llm import Tool, ToolInput
 from homeassistant.util.json import JsonObjectType
 
 from .const import DOMAIN
+
+_LOGGER = logging.getLogger(__name__)
+
+JOURNAL_DOMAIN = "calendar"
+PROMPT = """The Journal Assistant API allows you to search the users journal.
+When the user asks a question, you can call a tool to search their journal and
+use the journal content to inform your response. The individual notes in the
+journal are exposed as entities in the Home Assistant and are listed below.
+"""
 
 
 def async_register_llm_apis(hass: HomeAssistant) -> None:
@@ -67,13 +77,10 @@ class JournalLLMApi(API):
 
     @callback
     def _async_get_api_prompt(
-        self, llm_context: LLMContext, exposed_entities: dict | None
+        self, llm_context: LLMContext, exposed_entities: dict[str, dict[str, str]]
     ) -> str:
         """Return the prompt for the API."""
-        return (
-            "Only if the user wants to control a device, tell them to expose entities "
-            "to their voice assistant in Home Assistant."
-        )
+        return "\n".join([PROMPT, yaml.dump(list(exposed_entities.values()))])
 
     @callback
     def _async_get_tools(
@@ -83,20 +90,14 @@ class JournalLLMApi(API):
         return [VectorSearchTool()]
 
 
-def _get_exposed_entities(hass: HomeAssistant) -> dict[str, list[str]]:
+def _get_exposed_entities(hass: HomeAssistant) -> dict[str, dict[str, str]]:
     """Get exposed journal entities."""
-    entity_registry = er.async_get(hass)
-
-    entities: dict[str, list[str]] = {}
-
+    entities: dict[str, dict[str, str]] = {}
     for state in hass.states.async_all():
-        if state.domain != DOMAIN:
+        if state.domain != JOURNAL_DOMAIN:
             continue
-
-        entity_entry = entity_registry.async_get(state.entity_id)
-        names = [state.name]
-        if entity_entry is not None:
-            names.extend(entity_entry.aliases)
-        entities[state.entity_id] = names
-
+        entities[state.entity_id] = {
+            "entity_id": state.entity_id,
+            "name": state.name,
+        }
     return entities

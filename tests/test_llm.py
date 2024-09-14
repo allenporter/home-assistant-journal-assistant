@@ -1,7 +1,6 @@
 """Tests for the Journal Assistant LLM API."""
 
 import pytest
-from syrupy import SnapshotAssertion
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.llm import (
@@ -14,9 +13,11 @@ from homeassistant.helpers.llm import (
 @pytest.mark.usefixtures("setup_integration")
 async def test_journal_llm_api(
     hass: HomeAssistant,
-    snapshot: SnapshotAssertion,
 ) -> None:
     """Test the Journal Assistant LLM API is registered."""
+
+    state = hass.states.get("calendar.my_journal_daily")
+    assert state
 
     llm_context = LLMContext(
         platform="assistant",
@@ -30,6 +31,21 @@ async def test_journal_llm_api(
         hass,
         "journal_assistant",
         llm_context,
+    )
+    assert (
+        llm_api.api_prompt
+        == """The Journal Assistant API allows you to search the users journal.
+When the user asks a question, you can call a tool to search their journal and
+use the journal content to inform your response. The individual notes in the
+journal are exposed as entities in the Home Assistant and are listed below.
+
+- entity_id: calendar.my_journal_daily
+  name: 'My Journal: Daily'
+- entity_id: calendar.my_journal_journal
+  name: 'My Journal: Journal'
+- entity_id: calendar.my_journal_monthly
+  name: 'My Journal: Monthly'
+"""
     )
 
     assert len(llm_api.tools) == 1
