@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
@@ -30,7 +29,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         platforms=PLATFORMS,
     )
     async_register_services(hass)
-    async_register_llm_apis(hass)
+    await async_register_llm_apis(hass)
     return True
 
 

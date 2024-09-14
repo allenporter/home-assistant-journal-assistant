@@ -4,6 +4,7 @@ import logging
 
 import yaml
 import voluptuous as vol
+import chromadb
 
 from homeassistant.helpers.llm import API, LLMContext, APIInstance, async_register_api
 from homeassistant.helpers import (
@@ -14,6 +15,7 @@ from homeassistant.helpers.llm import Tool, ToolInput
 from homeassistant.util.json import JsonObjectType
 
 from .const import DOMAIN
+from .processing import vectordb
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,11 +25,15 @@ When the user asks a question, you can call a tool to search their journal and
 use the journal content to inform your response. The individual notes in the
 journal are exposed as entities in the Home Assistant and are listed below.
 """
+NUM_RESULTS = 5
 
 
-def async_register_llm_apis(hass: HomeAssistant) -> None:
+async def async_register_llm_apis(hass: HomeAssistant) -> None:
     """Register LLM APIs for Journal Assistant."""
-    async_register_api(hass, JournalLLMApi(hass))
+
+    client = await hass.async_add_executor_job(vectordb.create_index)
+
+    async_register_api(hass, JournalLLMApi(hass, client))
 
 
 class VectorSearchTool(Tool):
@@ -42,15 +48,25 @@ class VectorSearchTool(Tool):
         }
     )
 
+    def __init__(self, client: chromadb.ClientAPI) -> None:
+        """Initialize the tool."""
+        self.client = client
+
     async def async_call(
         self, hass: HomeAssistant, tool_input: ToolInput, llm_context: LLMContext
     ) -> JsonObjectType:
         """Call the tool."""
+        _LOGGER.debug("Calling search_journal tool with %s", tool_input.tool_args)
         entity_id = tool_input.tool_args["entity_id"]
         query = tool_input.tool_args["query"]
+
+        results = await hass.async_add_executor_job(
+            vectordb.query_collection, self.client, entity_id, query, NUM_RESULTS
+        )
         return {
             "entity_id": entity_id,
             "query": query,
+            "results": results,
         }
 
 
@@ -60,9 +76,10 @@ class JournalLLMApi(API):
     id = DOMAIN
     name = "Journal Assistant"
 
-    def __init__(self, hass: HomeAssistant) -> None:
+    def __init__(self, hass: HomeAssistant, client: chromadb.ClientAPI) -> None:
         """Initialize the LLM API."""
         self.hass = hass
+        self.client = client
 
     async def async_get_api_instance(self, llm_context: LLMContext) -> APIInstance:
         """Return the instance of the API."""
@@ -87,7 +104,7 @@ class JournalLLMApi(API):
         self, llm_context: LLMContext, exposed_entities: dict | None
     ) -> list[Tool]:
         """Return a list of LLM tools."""
-        return [VectorSearchTool()]
+        return [VectorSearchTool(self.client)]
 
 
 def _get_exposed_entities(hass: HomeAssistant) -> dict[str, dict[str, str]]:

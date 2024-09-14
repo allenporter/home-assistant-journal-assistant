@@ -63,6 +63,12 @@ See https://github.com/allenporter/supernote-llm
   - [ ] Add journal entities to the prompt
   - [ ] Add vector search intent
   - [ ] Calendar search intent
+- Vector search
+  - [ ] use async client database
+  - [ ] create db at starts
+  - [ ] Query database from tool end to end test
+  - [ ] persistence of database
+  - [ ] understand embedding functions
 
 ## Local Development
 
