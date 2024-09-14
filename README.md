@@ -59,11 +59,10 @@ See https://github.com/allenporter/supernote-llm
   - [ ] Support for additions to a journal (calendar)
   - [ ] Support for writes to a journal (calendar)
   - [ ] Support for edits to a journal (calendar)
-
-Future work:
-
-- [ ] media source for syncing down from device
-- [ ] vector search from a calendar
+- Assistant API
+  - [ ] Add journal entities to the prompt
+  - [ ] Add vector search intent
+  - [ ] Calendar search intent
 
 ## Local Development
 
