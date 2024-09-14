@@ -74,7 +74,6 @@ async def mock_config_entry(
         domain=DOMAIN,
         options={
             CONF_NAME: "My Journal",
-            CONF_MEDIA_SOURCE: "media-source://example",
             CONF_NOTES: "Daily\nWeekly\nMonthly",
         },
         title="My Journal",

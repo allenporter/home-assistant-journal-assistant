@@ -33,8 +33,6 @@ async def test_select_device(
             result["flow_id"],
             {
                 CONF_NAME: "Title",
-                CONF_MEDIA_SOURCE: "media-source://example",
-                CONF_CONVERSATION_AGENT_ID: "conversation_agent.example",
             },
         )
         await hass.async_block_till_done()
@@ -44,8 +42,6 @@ async def test_select_device(
     assert result.get("data") == {}
     assert result.get("options") == {
         CONF_NAME: "Title",
-        CONF_MEDIA_SOURCE: "media-source://example",
         CONF_NOTES: "Daily\nWeekly\nMonthly",
-        CONF_CONVERSATION_AGENT_ID: "conversation_agent.example",
     }
     assert len(mock_setup.mock_calls) == 1

@@ -31,10 +31,6 @@ CONFIG_FLOW = {
         vol.Schema(
             {
                 vol.Required(CONF_NAME): cv.string,
-                vol.Required(CONF_CONVERSATION_AGENT_ID): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain="conversation_agent")
-                ),
-                vol.Required(CONF_MEDIA_SOURCE): cv.string,
                 vol.Required(
                     CONF_NOTES, default="\n".join(DEFAULT_NOTES)
                 ): selector.TextSelector(selector.TextSelectorConfig(multiline=True)),
