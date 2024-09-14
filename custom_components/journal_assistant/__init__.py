@@ -29,7 +29,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         platforms=PLATFORMS,
     )
     async_register_services(hass)
-    await async_register_llm_apis(hass)
+    await async_register_llm_apis(hass, entry)
     return True
 
 

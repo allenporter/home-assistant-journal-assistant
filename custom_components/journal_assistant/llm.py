@@ -13,9 +13,12 @@ from homeassistant.helpers import (
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.llm import Tool, ToolInput
 from homeassistant.util.json import JsonObjectType
+from homeassistant.config_entries import ConfigEntry
 
-from .const import DOMAIN
+from .const import DOMAIN, CONF_NOTES, DEFAULT_NOTE_NAME
 from .processing import vectordb
+from .processing.journal import journal_from_yaml
+from . import calendar
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,10 +31,16 @@ journal are exposed as entities in the Home Assistant and are listed below.
 NUM_RESULTS = 5
 
 
-async def async_register_llm_apis(hass: HomeAssistant) -> None:
+async def async_register_llm_apis(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Register LLM APIs for Journal Assistant."""
 
-    client = await hass.async_add_executor_job(vectordb.create_index)
+    entries = await hass.async_add_executor_job(
+        journal_from_yaml,
+        calendar.storage_path(hass),
+        set(entry.options[CONF_NOTES].split("\n")),
+        DEFAULT_NOTE_NAME,
+    )
+    client = await hass.async_add_executor_job(vectordb.create_index, entries)
 
     async_register_api(hass, JournalLLMApi(hass, client))
 

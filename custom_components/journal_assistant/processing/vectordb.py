@@ -17,7 +17,8 @@ def create_index(notebooks: dict[str, Calendar]) -> chromadb.ClientAPI:
     """Create a search index for the journal."""
     client = chromadb.Client()
     for note_name, calendar in notebooks.items():
-        collection = client.create_collection(name="note_name")
+        _LOGGER.debug("Creating collection: %s", note_name)
+        collection = client.create_collection(name=note_name)
         for journal_entries in itertools.batched(calendar.journal, BATCH_SIZE):
             collection.add(
                 documents=[
