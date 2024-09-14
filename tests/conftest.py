@@ -17,7 +17,6 @@ from pytest_homeassistant_custom_component.common import (
 
 from custom_components.journal_assistant.const import (
     DOMAIN,
-    CONF_MEDIA_SOURCE,
     CONF_NOTES,
 )
 
