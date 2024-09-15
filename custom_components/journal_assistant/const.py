@@ -2,6 +2,7 @@
 
 DOMAIN = "journal_assistant"
 
+CONF_API_KEY = "api_key"
 CONF_MEDIA_SOURCE = "media_source"
 CONF_NOTES = "notes"
 DEFAULT_NOTES = [

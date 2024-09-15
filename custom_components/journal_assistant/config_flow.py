@@ -21,6 +21,7 @@ from .const import (
     DOMAIN,
     CONF_NOTES,
     DEFAULT_NOTES,
+    CONF_API_KEY,
 )
 
 
@@ -29,6 +30,7 @@ CONFIG_FLOW = {
         vol.Schema(
             {
                 vol.Required(CONF_NAME): cv.string,
+                vol.Required(CONF_API_KEY): cv.string,
                 vol.Required(
                     CONF_NOTES, default="\n".join(DEFAULT_NOTES)
                 ): selector.TextSelector(selector.TextSelectorConfig(multiline=True)),

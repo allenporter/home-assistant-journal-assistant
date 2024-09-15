@@ -60,15 +60,15 @@ See https://github.com/allenporter/supernote-llm
   - [ ] Support for writes to a journal (calendar)
   - [ ] Support for edits to a journal (calendar)
 - Assistant API
-  - [ ] Add journal entities to the prompt
-  - [ ] Add vector search intent
+  - [x] Add journal entities to the prompt
+  - [x] Add vector search intent
   - [ ] Calendar search intent
 - Vector search
-  - [ ] use async client database
-  - [ ] create db at starts
-  - [ ] Query database from tool end to end test
-  - [ ] persistence of database
-  - [ ] understand embedding functions
+  - [x] create db at starts
+  - [x] Query database from tool end to end test
+  - [x] persistence of database
+  - [x] understand embedding functions
+- [ ] support removing config entries, cleaning up database
 
 ## Local Development
 

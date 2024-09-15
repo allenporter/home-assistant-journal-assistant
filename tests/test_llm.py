@@ -16,9 +16,6 @@ async def test_journal_llm_api(
 ) -> None:
     """Test the Journal Assistant LLM API is registered."""
 
-    state = hass.states.get("calendar.my_journal_daily")
-    assert state
-
     llm_context = LLMContext(
         platform="assistant",
         context=None,
@@ -58,6 +55,12 @@ journal are exposed as entities in the Home Assistant and are listed below.
     )
     function_response = await llm_api.async_call_tool(tool_input)
     assert function_response == {
-        "entity_id": "calendar.my_journal_daily",
         "query": "today",
+        "results": [
+            {
+                "content": "document",
+                "id": "098f6bcd4621d373cade4e832627b4f6",
+                "notebook": "Daily",
+            },
+        ],
     }

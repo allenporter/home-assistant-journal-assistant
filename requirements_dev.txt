@@ -6,6 +6,7 @@ pre-commit==3.6.0
 ruff==0.4.4
 
 chromadb==0.5.0
+google-generativeai>=0.8.1
 ical>=8.2.0
 
 # Home Assistant testing dependencies

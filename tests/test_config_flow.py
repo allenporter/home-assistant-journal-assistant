@@ -11,10 +11,11 @@ from homeassistant.const import CONF_NAME
 from custom_components.journal_assistant.const import (
     DOMAIN,
     CONF_NOTES,
+    CONF_API_KEY,
 )
 
 
-async def test_select_device(
+async def test_config_flow(
     hass: HomeAssistant,
 ) -> None:
     """Test selecting a device in the configuration flow."""
@@ -31,6 +32,7 @@ async def test_select_device(
             result["flow_id"],
             {
                 CONF_NAME: "Title",
+                CONF_API_KEY: "54321",
             },
         )
         await hass.async_block_till_done()
@@ -41,5 +43,6 @@ async def test_select_device(
     assert result.get("options") == {
         CONF_NAME: "Title",
         CONF_NOTES: "Daily\nWeekly\nMonthly",
+        CONF_API_KEY: "54321",
     }
     assert len(mock_setup.mock_calls) == 1

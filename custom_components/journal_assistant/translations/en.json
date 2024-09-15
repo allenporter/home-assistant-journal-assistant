@@ -1,5 +1,18 @@
 {
   "title": "Journal Assistant",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configure Journal Assistant",
+        "description": "Create a Journal from an electronic notebook, using Google vector embeddings.",
+        "data": {
+          "name": "Journal Name",
+          "api_key": "Google Gemini API Key",
+          "notes": "Notes"
+        }
+      }
+    }
+  },
   "services": {
     "process_media": {
       "name": "Process Media",

@@ -2,7 +2,6 @@
 
 import datetime
 import logging
-from pathlib import Path
 import slugify
 
 from ical.calendar import Calendar
@@ -16,19 +15,11 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN, CONF_NOTES, DEFAULT_NOTE_NAME
-from .processing.journal import journal_from_yaml
+from .storage import load_journal_entries
 
 _LOGGER = logging.getLogger(__name__)
 
 UPDATE_INTERVAL = datetime.timedelta(minutes=15)
-STORAGE_PATH = f"{DOMAIN}/data"
-
-
-def storage_path(hass: HomeAssistant) -> Path:
-    """Return the storage path for yaml notebook files."""
-    _LOGGER.debug("Calling storage_path")
-    return Path(hass.config.path(STORAGE_PATH))
 
 
 async def async_setup_entry(
@@ -38,13 +29,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up the journal calendar component."""
     _LOGGER.debug("Setting up journal calendar component")
-    entries = await hass.async_add_executor_job(
-        journal_from_yaml,
-        storage_path(hass),
-        set(entry.options[CONF_NOTES].split("\n")),
-        DEFAULT_NOTE_NAME,
-    )
-
+    entries = await load_journal_entries(hass, entry)
     for journal_name, calendar in entries.items():
         async_add_entities([JournalCalendar(entry, journal_name, calendar)])
 

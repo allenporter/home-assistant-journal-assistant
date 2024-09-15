@@ -2,8 +2,10 @@
 
 from collections.abc import Generator, AsyncGenerator
 import logging
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 from pathlib import Path
+import hashlib
+
 
 import pytest
 
@@ -18,9 +20,17 @@ from pytest_homeassistant_custom_component.common import (
 from custom_components.journal_assistant.const import (
     DOMAIN,
     CONF_NOTES,
+    CONF_API_KEY,
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+FIXTURES_DIR = Path("tests/fixtures/")
+DOCUMENT_RESULT = {
+    "id": hashlib.md5("test".encode()).hexdigest(),
+    "content": "document",
+    "notebook": "Daily",
+}
 
 
 @pytest.fixture(autouse=True)
@@ -38,20 +48,33 @@ def mock_platforms() -> list[Platform]:
     return []
 
 
-@pytest.fixture(name="storage_path")
-def mock_storage_path() -> Generator[None, None, None]:
+@pytest.fixture(name="journal_storage_path")
+def mock_journal_storage_path() -> Generator[Path, None, None]:
     """Fake out the storage path to load from the fixtures directory."""
     with patch(
-        f"custom_components.{DOMAIN}.calendar.storage_path",
-        return_value=Path("tests/fixtures/"),
+        f"custom_components.{DOMAIN}.storage.journal_storage_path",
+        return_value=FIXTURES_DIR,
     ):
-        yield
+        yield FIXTURES_DIR
+
+
+@pytest.fixture(name="mock_vectordb")
+def mock_vectordb() -> Generator[Mock, None, None]:
+    """Fixture to mock the VectorDB system."""
+    with patch(
+        f"custom_components.{DOMAIN}.storage.VectorDB",
+    ) as mock_vectordb:
+        mock_vectordb.return_value.query.return_value = [
+            DOCUMENT_RESULT,
+        ]
+        yield mock_vectordb
 
 
 @pytest.fixture(name="setup_integration")
 async def mock_setup_integration(
     hass: HomeAssistant,
-    storage_path: None,
+    journal_storage_path: Path,
+    mock_vectordb: Mock,
     config_entry: MockConfigEntry,
     platforms: list[Platform],
 ) -> AsyncGenerator[None, None]:
@@ -74,6 +97,7 @@ async def mock_config_entry(
         options={
             CONF_NAME: "My Journal",
             CONF_NOTES: "Daily\nWeekly\nMonthly",
+            CONF_API_KEY: "12345",
         },
         title="My Journal",
     )
