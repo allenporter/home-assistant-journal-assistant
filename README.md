@@ -68,6 +68,7 @@ See https://github.com/allenporter/supernote-llm
   - [x] Query database from tool end to end test
   - [x] persistence of database
   - [x] understand embedding functions
+  - [ ] support deleting documents and removig from index
 - [ ] support removing config entries, cleaning up database
 
 ## Local Development

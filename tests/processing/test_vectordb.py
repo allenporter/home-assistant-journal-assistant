@@ -42,7 +42,7 @@ class FakeEmbeddingFunction(chromadb.EmbeddingFunction):
         result: chromadb.Embeddings = []
         for item in input:
             self.embeds += 1
-            result.append([ord(c) for c in hashlib.md5(item.encode()).hexdigest()][0:3])
+            result.append([ord(c) for c in hashlib.sha256(item.encode()).hexdigest()][0:3])
         return result
 
 
@@ -63,7 +63,6 @@ def test_vectordb_loading(storage_path: Path, embedding_function: FakeEmbeddingF
     entries = journal_from_yaml(Path("tests/fixtures"), {"Daily", "Monthly"}, "Journal")
     assert len(entries) == 3
     assert entries.keys() == {"Daily", "Journal", "Monthly"}
-
 
     # Add the first entry to the index
     k_v = next(iter(entries.items()))

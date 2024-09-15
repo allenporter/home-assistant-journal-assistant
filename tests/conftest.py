@@ -27,7 +27,7 @@ _LOGGER = logging.getLogger(__name__)
 
 FIXTURES_DIR = Path("tests/fixtures/")
 DOCUMENT_RESULT = {
-    "id": hashlib.md5("test".encode()).hexdigest(),
+    "id": hashlib.sha256("test".encode()).hexdigest(),
     "content": "document",
     "notebook": "Daily",
 }

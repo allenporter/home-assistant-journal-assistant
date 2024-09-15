@@ -3,6 +3,7 @@
 from pathlib import Path
 import datetime
 import logging
+import hashlib
 
 from ical.calendar import Calendar
 from ical.journal import Journal
@@ -78,6 +79,7 @@ def journal_from_yaml(
         calendar = journals[key_name]
         for date, content_list in dated_content.items():
             journal = Journal()
+            journal.uid = hashlib.sha256(f"{note_name}-{date}".encode()).hexdigest()
             journal.summary = f"{note_name} {date}"
             if "T" in date:
                 journal.dtstart = datetime.datetime.fromisoformat(date)
