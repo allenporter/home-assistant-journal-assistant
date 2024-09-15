@@ -60,7 +60,7 @@ class VectorDB:
                 _LOGGER.debug("Results: %s", results)
                 existing_ids = {
                     uid: documents
-                    for uid, documents in zip(results["ids"], results["documents"])
+                    for uid, documents in zip(results["ids"], results.get("documents") or [])
                 }
                 if existing_ids:
                     _LOGGER.debug("Found %s existing documents", len(existing_ids))
@@ -91,11 +91,11 @@ class VectorDB:
                 ]
                 self.collection.upsert(
                     documents=documents,
-                    metadatas=metadatas,
+                    metadatas=metadatas,  # type: ignore[arg-type]
                     ids=ids,
                 )
 
-    def count() -> int:
+    def count(self) -> int:
         """Return the number of documents in the collection."""
         return self.collection.count()
 
