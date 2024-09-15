@@ -78,5 +78,5 @@ def test_vectordb_loading(storage_path: Path, embedding_function: FakeEmbeddingF
 
     results = db.query("example", num_results=5)
     assert len(results) == 5
-    assert results[0].keys() == {"id", "content", "date", "name", "notebook"}
-    assert results[0]["notebook"] in ("Daily", "Journal", "Monthly")
+    assert results[0].keys() == {"id", "content", "date", "name", "category"}
+    assert results[0]["category"] in ("Daily", "Journal", "Monthly")

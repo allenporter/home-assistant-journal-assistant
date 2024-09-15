@@ -81,6 +81,7 @@ def journal_from_yaml(
             journal = Journal()
             journal.uid = hashlib.sha256(f"{note_name}-{date}".encode()).hexdigest()
             journal.summary = f"{note_name} {date}"
+            journal.categories = [note_name]
             if "T" in date:
                 journal.dtstart = datetime.datetime.fromisoformat(date)
             else:

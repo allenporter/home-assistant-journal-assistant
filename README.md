@@ -69,7 +69,9 @@ See https://github.com/allenporter/supernote-llm
   - [x] persistence of database
   - [x] understand embedding functions
   - [ ] support deleting documents and removig from index
+- [ ] support reload of config entries
 - [ ] support removing config entries, cleaning up database
+- [ ] make vetordb indexing asynchronous
 
 ## Local Development
 

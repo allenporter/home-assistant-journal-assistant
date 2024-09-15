@@ -64,7 +64,7 @@ class VectorDB:
                 }
                 if existing_ids:
                     _LOGGER.debug("Found %s existing documents", len(existing_ids))
-                # Determine which journal entires are entirely new or have
+                # Determine which journal entries are entirely new or have
                 # updated descriptions
                 journal_entries = []
                 for journal_entry in found_journal_entries:
@@ -83,7 +83,7 @@ class VectorDB:
                 ]
                 metadatas = [
                     {
-                        "notebook": note_name,
+                        "category": journal_entry.categories[0] if journal_entry.categories else "",
                         "date": journal_entry.dtstart.isoformat(),
                         "name": journal_entry.summary or "",
                     }
