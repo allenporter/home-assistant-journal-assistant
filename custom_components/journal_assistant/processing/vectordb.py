@@ -45,27 +45,59 @@ class VectorDB:
             name=COLLECTION_NAME, embedding_function=self.embedding_function  # type: ignore[arg-type]
         )
 
-    def add_to_index(self, notebooks: dict[str, Calendar]) -> None:
+    def upsert_index(self, notebooks: dict[str, Calendar]) -> None:
         """Add notebooks to the index."""
         _LOGGER.debug("Adding notebooks to index")
         for note_name, calendar in notebooks.items():
-            for journal_entries in itertools.batched(calendar.journal, BATCH_SIZE):
-                _LOGGER.debug("Adding batch of {len(journal_entries)} to index")
-                self.collection.add(
-                    documents=[
+            _LOGGER.debug("Indexing %s with %s entries", note_name, len(calendar.journal))
+            for found_journal_entries in itertools.batched(calendar.journal, BATCH_SIZE):
+                _LOGGER.debug("Examining batch of %s to index", len(found_journal_entries))
+                ids = [journal_entry.uid or "" for journal_entry in found_journal_entries]
+                results = self.collection.get(
+                    ids=ids,
+                    include=["documents"]
+                )
+                _LOGGER.debug("Results: %s", results)
+                existing_ids = {
+                    uid: documents
+                    for uid, documents in zip(results["ids"], results["documents"])
+                }
+                if existing_ids:
+                    _LOGGER.debug("Found %s existing documents", len(existing_ids))
+                # Determine which journal entires are entirely new or have
+                # updated descriptions
+                journal_entries = []
+                for journal_entry in found_journal_entries:
+                    existing_content = existing_ids.get(journal_entry.uid)
+                    if existing_content is None or journal_entry.description != existing_content:
+                        journal_entries.append(journal_entry)
+
+                ids = [journal_entry.uid or "" for journal_entry in journal_entries]
+                if not ids:
+                    _LOGGER.debug("Skipping batch of unchanged documents")
+                    continue
+                _LOGGER.debug("Upserting batch of %s to index", len(journal_entries))
+                documents = [
                         journal_entry.description or ""
                         for journal_entry in journal_entries
-                    ],
-                    metadatas=[
-                        {
-                            "notebook": note_name,
-                            "date": journal_entry.dtstart.isoformat(),
-                            "name": journal_entry.summary or "",
-                        }
-                        for journal_entry in journal_entries
-                    ],
-                    ids=[journal_entry.uid or "" for journal_entry in journal_entries],
+                ]
+                metadatas = [
+                    {
+                        "notebook": note_name,
+                        "date": journal_entry.dtstart.isoformat(),
+                        "name": journal_entry.summary or "",
+                    }
+                    for journal_entry in journal_entries
+                ]
+                self.collection.upsert(
+                    documents=documents,
+                    metadatas=metadatas,
+                    ids=ids,
                 )
+
+    def count() -> int:
+        """Return the number of documents in the collection."""
+        return self.collection.count()
 
     def query(self, query: str, num_results: int) -> list[dict[str, Any]]:
         """Search the VectorDB for relevant documents."""

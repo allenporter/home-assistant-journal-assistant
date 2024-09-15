@@ -46,7 +46,7 @@ def _create_vector_db(
     storage_path: Path, api_key: str, entries: dict[str, Calendar]
 ) -> VectorDB:
     vectordb = VectorDB(storage_path, api_key)
-    vectordb.add_to_index(entries)
+    vectordb.upsert_index(entries)
     return vectordb
 
 

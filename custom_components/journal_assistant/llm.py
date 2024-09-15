@@ -33,7 +33,7 @@ async def async_register_llm_apis(
 ) -> None:
     """Register LLM APIs for Journal Assistant."""
 
-    async_register_api(hass, JournalLLMApi(hass, entry.runtime_data))
+    async_register_api(hass, JournalLLMApi(hass, entry))
 
 
 class VectorSearchTool(Tool):
@@ -57,8 +57,8 @@ class VectorSearchTool(Tool):
         """Call the tool."""
         _LOGGER.debug("Calling search_journal tool with %s", tool_input.tool_args)
         query = tool_input.tool_args["query"]
-
         results = await hass.async_add_executor_job(self.db.query, query, NUM_RESULTS)
+        _LOGGER.debug("Search results: %s", results)
         return {
             "query": query,
             "results": results,
@@ -68,13 +68,12 @@ class VectorSearchTool(Tool):
 class JournalLLMApi(API):
     """Journal Assistant LLM API."""
 
-    id = DOMAIN
-    name = "Journal Assistant"
-
-    def __init__(self, hass: HomeAssistant, db: VectorDB) -> None:
+    def __init__(self, hass: HomeAssistant, entry: JournalAssistantConfigEntry) -> None:
         """Initialize the LLM API."""
         self.hass = hass
-        self.db = db
+        self.id = f"{DOMAIN}-{entry.entry_id}"
+        self.name = entry.title
+        self.db = entry.runtime_data
 
     async def async_get_api_instance(self, llm_context: LLMContext) -> APIInstance:
         """Return the instance of the API."""

@@ -3,6 +3,7 @@
 import pytest
 
 from homeassistant.core import HomeAssistant
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.llm import (
     LLMContext,
     ToolInput,
@@ -13,6 +14,7 @@ from homeassistant.helpers.llm import (
 @pytest.mark.usefixtures("setup_integration")
 async def test_journal_llm_api(
     hass: HomeAssistant,
+    config_entry: ConfigEntry,
 ) -> None:
     """Test the Journal Assistant LLM API is registered."""
 
@@ -26,7 +28,7 @@ async def test_journal_llm_api(
     )
     llm_api = await async_get_api(
         hass,
-        "journal_assistant",
+        f"journal_assistant-{config_entry.entry_id}",
         llm_context,
     )
     assert (

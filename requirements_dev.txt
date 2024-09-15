@@ -16,6 +16,7 @@ syrupy>=4.6.1
 # Component dependencies
 hassil>=1.7.0
 home-assistant-intents>=2024.4.3
+mutagen>=1.47.0
 
 mashumaro>=3.13.1
 ical>=8.1.1
