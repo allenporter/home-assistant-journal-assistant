@@ -50,9 +50,9 @@ See https://github.com/allenporter/supernote-llm
   - [ ] Persist journal in .ics
   - [ ] Merge existing journal contents with ingested processed media
 - Visibility
-  - [ ] Entities associated with a device service
+  - [x] Entities associated with a device service
   - [ ] Sensors exporting diagnostic information like last time processed
-  - [ ] Sensor exporting # of journal entries
+  - [x] Sensor exporting # of journal entries
   - [ ] Event entities? exposed when content is updated
 - Journal Entity
   - [ ] Update tests to use service calls for reads

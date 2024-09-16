@@ -2,21 +2,14 @@
 
 import datetime
 import logging
-import slugify
 
-from ical.calendar import Calendar
-from ical.journal import Journal
-from ical.timeline import generic_timeline
 
-from homeassistant.components.calendar import CalendarEntity, CalendarEvent
-from homeassistant.const import CONF_NAME, EntityCategory
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.util import dt as dt_util
 
-from .storage import load_journal_entries
+from .const import DOMAIN
 from .types import JournalAssistantConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
@@ -44,8 +37,11 @@ class VectorDBCountSensorEntity(SensorEntity):
         """Initialize the vector db count sensor."""
         self._attr_unique_id = f"{entry.entry_id}-vector-db-count"
         self._db = entry.runtime_data
-        self._attr_name = entry.options[CONF_NAME] + " Vector DB Count"
-        self._attr_state = 0
+        self._attr_name = "Vector DB Count"
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, entry.entry_id)},
+            "name": entry.title,
+        }
 
     def update(self) -> None:
         """Update the sensor state."""

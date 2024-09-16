@@ -25,7 +25,7 @@ async def test_calendar(
     assert state is not None
     assert state.state == "off"
     assert dict(state.attributes) == {
-        "friendly_name": "My Journal: Daily",
+        "friendly_name": "My Journal Daily",
     }
 
     start = "2023-12-01T00:00:00Z"

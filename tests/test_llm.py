@@ -56,11 +56,11 @@ use the journal content to inform your response. The individual notes in the
 journal are exposed as entities in the Home Assistant and are listed below.
 
 - entity_id: calendar.my_journal_daily
-  name: 'My Journal: Daily'
+  name: My Journal Daily
 - entity_id: calendar.my_journal_journal
-  name: 'My Journal: Journal'
+  name: My Journal Journal
 - entity_id: calendar.my_journal_monthly
-  name: 'My Journal: Monthly'
+  name: My Journal Monthly
 """
     )
 

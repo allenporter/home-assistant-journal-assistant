@@ -9,12 +9,12 @@ from ical.journal import Journal
 from ical.timeline import generic_timeline
 
 from homeassistant.components.calendar import CalendarEntity, CalendarEvent
-from homeassistant.const import CONF_NAME
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
+from .const import DOMAIN
 from .storage import load_journal_entries
 
 _LOGGER = logging.getLogger(__name__)
@@ -45,9 +45,13 @@ class JournalCalendar(CalendarEntity):
         """Initialize the journal calendar component."""
         self._attr_unique_id = f"{entry.entry_id}-{slugify.slugify(journal_name)}"
         self._entry = entry
-        self._attr_name = entry.options[CONF_NAME] + ": " + journal_name
+        self._attr_name = journal_name
         self._calendar = calendar
         self._event: CalendarEvent | None = None
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, entry.entry_id)},
+            "name": entry.title,
+        }
 
     @property
     def event(self) -> CalendarEvent | None:

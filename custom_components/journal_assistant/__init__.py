@@ -21,7 +21,7 @@ __all__ = [
 _LOGGER = logging.getLogger(__name__)
 
 
-PLATFORMS: tuple[Platform] = (Platform.CALENDAR, Platform.SENSOR)
+PLATFORMS = (Platform.CALENDAR, Platform.SENSOR)
 
 
 async def async_setup_entry(
