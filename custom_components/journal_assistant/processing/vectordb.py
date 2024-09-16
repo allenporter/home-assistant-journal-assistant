@@ -21,7 +21,7 @@ COLLECTION_NAME = "journal_assistant"
 
 def serialize_content(item: Journal) -> str:
     """Serialize a journal entry."""
-    return yaml.dump(item.dict(exclude={"uid", "dtsamp"}, exclude_unset=True, exclude_none=True))
+    return yaml.dump(item.dict(exclude={"uid", "dtsamp"}, exclude_unset=True, exclude_none=True))  # type: ignore[no-any-return]
 
 
 class VectorDB:
