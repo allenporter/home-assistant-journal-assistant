@@ -52,6 +52,10 @@ async def async_register_llm_apis(
 
     async_register_api(hass, JournalLLMApi(hass, entry))
 
+def _custom_serializer(obj: object) -> object:
+    """Custom serializer for Journal Assistant objects."""
+    return {"type": "string"}
+
 
 class VectorSearchTool(Tool):
     """Journal Assistant vector search tool."""
@@ -66,7 +70,7 @@ class VectorSearchTool(Tool):
 
     def __init__(self, db: VectorDB) -> None:
         """Initialize the tool."""
-        self.db = db
+        self._db = db
 
     async def async_call(
         self, hass: HomeAssistant, tool_input: ToolInput, llm_context: LLMContext
@@ -74,7 +78,7 @@ class VectorSearchTool(Tool):
         """Call the tool."""
         _LOGGER.debug("Calling search_journal tool with %s", tool_input.tool_args)
         query = tool_input.tool_args["query"]
-        results = await hass.async_add_executor_job(self.db.query, query, NUM_RESULTS)
+        results = await hass.async_add_executor_job(self._db.query, query, NUM_RESULTS)
         _LOGGER.debug("Search results: %s", results)
         return {
             "query": query,
@@ -101,7 +105,7 @@ class JournalLLMApi(API):
             api_prompt=prompt,
             llm_context=llm_context,
             tools=[VectorSearchTool(self.db)],
-            # custom_serializer=_selector_serializer,
+            custom_serializer=_custom_serializer,
         )
 
 

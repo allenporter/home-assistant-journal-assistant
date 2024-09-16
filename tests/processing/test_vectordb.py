@@ -80,3 +80,21 @@ def test_vectordb_loading(storage_path: Path, embedding_function: FakeEmbeddingF
     assert len(results) == 5
     assert results[0].keys() == {"id", "content", "date", "name", "category"}
     assert results[0]["category"] in ("Daily", "Journal", "Monthly")
+    assert results[0]["content"] == """categories:
+- Daily
+description: '- migrate Dec to supernote
+
+  - set Plans w/ mom
+
+  - call Dad re xmas plan
+
+  - gifts info to mom & Sam
+
+  - prod readiness pass
+
+  - xmas tree
+
+  - Dot template: darker 5mm'
+dtstart: 2023-12-19
+summary: Daily 2023-12-19
+"""

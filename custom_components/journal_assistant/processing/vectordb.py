@@ -4,18 +4,24 @@ import itertools
 import logging
 from typing import Any
 from pathlib import Path
+import yaml
 
 import chromadb
 from chromadb.config import DEFAULT_TENANT, DEFAULT_DATABASE, Settings
 import chromadb.utils.embedding_functions as embedding_functions
 
 from ical.calendar import Calendar
+from ical.journal import Journal
 
 
 _LOGGER = logging.getLogger(__name__)
 
 BATCH_SIZE = 5
 COLLECTION_NAME = "journal_assistant"
+
+def serialize_content(item: Journal) -> str:
+    """Serialize a journal entry."""
+    return yaml.dump(item.dict(exclude={"uid", "dtsamp"}, exclude_unset=True, exclude_none=True))
 
 
 class VectorDB:
@@ -67,28 +73,24 @@ class VectorDB:
                 # Determine which journal entries are entirely new or have
                 # updated descriptions
                 journal_entries = []
+                documents = []
+                metadatas = []
                 for journal_entry in found_journal_entries:
                     existing_content = existing_ids.get(journal_entry.uid)
-                    if existing_content is None or journal_entry.description != existing_content:
+                    entry_content = serialize_content(journal_entry)
+                    if existing_content is None or entry_content != existing_content:
                         journal_entries.append(journal_entry)
-
+                        documents.append(entry_content)
+                        metadatas.append({
+                            "category": journal_entry.categories[0] if journal_entry.categories else "",
+                            "date": journal_entry.dtstart.isoformat(),
+                            "name": journal_entry.summary or "",
+                        })
                 ids = [journal_entry.uid or "" for journal_entry in journal_entries]
                 if not ids:
                     _LOGGER.debug("Skipping batch of unchanged documents")
                     continue
                 _LOGGER.debug("Upserting batch of %s to index", len(journal_entries))
-                documents = [
-                        journal_entry.description or ""
-                        for journal_entry in journal_entries
-                ]
-                metadatas = [
-                    {
-                        "category": journal_entry.categories[0] if journal_entry.categories else "",
-                        "date": journal_entry.dtstart.isoformat(),
-                        "name": journal_entry.summary or "",
-                    }
-                    for journal_entry in journal_entries
-                ]
                 self.collection.upsert(
                     documents=documents,
                     metadatas=metadatas,  # type: ignore[arg-type]
