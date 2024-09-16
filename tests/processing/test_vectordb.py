@@ -76,6 +76,8 @@ def test_vectordb_loading(storage_path: Path, embedding_function: FakeEmbeddingF
     db.upsert_index(entries)
     assert embedding_function.embeds == 6
 
+    assert db.count() == 6
+
     results = db.query("example", num_results=5)
     assert len(results) == 5
     assert results[0].keys() == {"id", "content", "date", "name", "category"}

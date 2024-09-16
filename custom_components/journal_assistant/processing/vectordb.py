@@ -18,6 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 
 BATCH_SIZE = 5
 COLLECTION_NAME = "journal_assistant"
+MODEL = "models/text-embedding-004"
 
 def serialize_content(item: Journal) -> str:
     """Serialize a journal entry."""
@@ -35,9 +36,19 @@ class VectorDB:
         )
         self.system = chromadb.config.System(settings)
         _LOGGER.debug("Creating Google embedding function")
-        self.embedding_function = (
+        # Separate embedding functions are used for idnexing vs querying
+        self.index_embedding_function = (
             embedding_functions.GoogleGenerativeAiEmbeddingFunction(
-                api_key=google_api_key
+                api_key=google_api_key,
+                model_name=MODEL,
+                task_type="RETRIEVAL_DOCUMENT"
+            )
+        )
+        self.query_embedding_function = (
+            embedding_functions.GoogleGenerativeAiEmbeddingFunction(
+                api_key=google_api_key,
+                model_name=MODEL,
+                task_type="RETRIEVAL_QUERY"
             )
         )
         self.client = chromadb.PersistentClient(
@@ -47,19 +58,21 @@ class VectorDB:
             database=DEFAULT_DATABASE,
         )
         _LOGGER.debug("Creating collection: %s", COLLECTION_NAME)
-        self.collection = self.client.get_or_create_collection(
-            name=COLLECTION_NAME, embedding_function=self.embedding_function  # type: ignore[arg-type]
-        )
 
     def upsert_index(self, notebooks: dict[str, Calendar]) -> None:
         """Add notebooks to the index."""
         _LOGGER.debug("Adding notebooks to index")
+
+        collection = self.client.get_or_create_collection(
+            name=COLLECTION_NAME, embedding_function=self.index_embedding_function  # type: ignore[arg-type]
+        )
+
         for note_name, calendar in notebooks.items():
             _LOGGER.debug("Indexing %s with %s entries", note_name, len(calendar.journal))
             for found_journal_entries in itertools.batched(calendar.journal, BATCH_SIZE):
                 _LOGGER.debug("Examining batch of %s to index", len(found_journal_entries))
                 ids = [journal_entry.uid or "" for journal_entry in found_journal_entries]
-                results = self.collection.get(
+                results = collection.get(
                     ids=ids,
                     include=["documents"]
                 )
@@ -91,7 +104,7 @@ class VectorDB:
                     _LOGGER.debug("Skipping batch of unchanged documents")
                     continue
                 _LOGGER.debug("Upserting batch of %s to index", len(journal_entries))
-                self.collection.upsert(
+                collection.upsert(
                     documents=documents,
                     metadatas=metadatas,  # type: ignore[arg-type]
                     ids=ids,
@@ -99,11 +112,18 @@ class VectorDB:
 
     def count(self) -> int:
         """Return the number of documents in the collection."""
-        return self.collection.count()
+        collection = self.client.get_collection(
+            name=COLLECTION_NAME, embedding_function=self.query_embedding_function  # type: ignore[arg-type]
+        )
+        return collection.count()
 
     def query(self, query: str, num_results: int) -> list[dict[str, Any]]:
         """Search the VectorDB for relevant documents."""
-        results: chromadb.QueryResult = self.collection.query(
+        collection = self.client.get_collection(
+            name=COLLECTION_NAME, embedding_function=self.query_embedding_function  # type: ignore[arg-type]
+        )
+
+        results: chromadb.QueryResult = collection.query(
             query_texts=query,
             n_results=num_results,
         )
