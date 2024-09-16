@@ -1,8 +1,5 @@
 """Test a calendar entity."""
 
-import urllib
-from http import HTTPStatus
-
 import pytest
 from syrupy import SnapshotAssertion
 
