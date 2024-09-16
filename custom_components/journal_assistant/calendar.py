@@ -1,4 +1,4 @@
-"""A journal calendar component."""
+"""Journal Assistant calendar platform."""
 
 import datetime
 import logging

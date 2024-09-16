@@ -67,6 +67,7 @@ def mock_vectordb() -> Generator[Mock, None, None]:
         mock_vectordb.return_value.query.return_value = [
             DOCUMENT_RESULT,
         ]
+        mock_vectordb.return_value.count.return_value = 7
         yield mock_vectordb
 
 

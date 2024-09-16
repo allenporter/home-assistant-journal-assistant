@@ -21,20 +21,18 @@ __all__ = [
 _LOGGER = logging.getLogger(__name__)
 
 
-PLATFORMS: tuple[Platform] = (Platform.CALENDAR,)
+PLATFORMS: tuple[Platform] = (Platform.CALENDAR, Platform.SENSOR)
 
 
 async def async_setup_entry(
     hass: HomeAssistant, entry: JournalAssistantConfigEntry
 ) -> bool:
     """Set up a config entry."""
-
-    vectordb = await create_vector_db(hass, entry)
+    entry.runtime_data = await create_vector_db(hass, entry)
     await hass.config_entries.async_forward_entry_setups(
         entry,
         platforms=PLATFORMS,
     )
-    entry.runtime_data = vectordb
     async_register_services(hass)
     await async_register_llm_apis(hass, entry)
     return True
