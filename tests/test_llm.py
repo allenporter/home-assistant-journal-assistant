@@ -70,7 +70,7 @@ journal are exposed as entities in the Home Assistant and are listed below.
 
     tool_input = ToolInput(
         tool_name="search_journal",
-        tool_args={"entity_id": "calendar.my_journal_daily", "query": "today"},
+        tool_args={"query": "today"},
     )
     function_response = await llm_api.async_call_tool(tool_input)
     assert function_response == {
