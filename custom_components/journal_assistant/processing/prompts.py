@@ -30,7 +30,7 @@ FILE_PREFIX_PROMPT_MAP = {
     ],
 }
 
-TIMESTAMP_RE = re.compile(".*?-\d+-P(\d{20}).*")
+TIMESTAMP_RE = re.compile(r".*?-\d+-P(\d{20}).*")
 
 FILE_PROMPT = """Please answer in json with no other formatting since the answer will be parsed programmatically.
 
