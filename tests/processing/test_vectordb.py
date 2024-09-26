@@ -51,7 +51,7 @@ def mock_embedding_function() -> Generator[FakeEmbeddingFunction, None, None]:
     """Fixture to mock the embedding function."""
     fake_embedding = FakeEmbeddingFunction()
     with patch(
-        f"custom_components.{DOMAIN}.processing.vectordb.embedding_functions.GoogleGenerativeAiEmbeddingFunction",
+        f"custom_components.{DOMAIN}.processing.vectordb.google_embedding_function.GoogleGenerativeAiEmbeddingFunction",
         return_value=fake_embedding,
     ):
         yield fake_embedding

@@ -6,9 +6,11 @@ from typing import Any
 from pathlib import Path
 import yaml
 
+
 import chromadb
+from chromadb.api.types import IncludeEnum
 from chromadb.config import DEFAULT_TENANT, DEFAULT_DATABASE, Settings
-import chromadb.utils.embedding_functions as embedding_functions
+from chromadb.utils.embedding_functions import google_embedding_function
 
 from ical.calendar import Calendar
 from ical.journal import Journal
@@ -19,6 +21,7 @@ _LOGGER = logging.getLogger(__name__)
 BATCH_SIZE = 5
 COLLECTION_NAME = "journal_assistant"
 MODEL = "models/text-embedding-004"
+
 
 def serialize_content(item: Journal) -> str:
     """Serialize a journal entry."""
@@ -38,17 +41,13 @@ class VectorDB:
         _LOGGER.debug("Creating Google embedding function")
         # Separate embedding functions are used for idnexing vs querying
         self.index_embedding_function = (
-            embedding_functions.GoogleGenerativeAiEmbeddingFunction(
-                api_key=google_api_key,
-                model_name=MODEL,
-                task_type="RETRIEVAL_DOCUMENT"
+            google_embedding_function.GoogleGenerativeAiEmbeddingFunction(
+                api_key=google_api_key, model_name=MODEL, task_type="RETRIEVAL_DOCUMENT"
             )
         )
         self.query_embedding_function = (
-            embedding_functions.GoogleGenerativeAiEmbeddingFunction(
-                api_key=google_api_key,
-                model_name=MODEL,
-                task_type="RETRIEVAL_QUERY"
+            google_embedding_function.GoogleGenerativeAiEmbeddingFunction(
+                api_key=google_api_key, model_name=MODEL, task_type="RETRIEVAL_QUERY"
             )
         )
         self.client = chromadb.PersistentClient(
@@ -68,18 +67,25 @@ class VectorDB:
         )
 
         for note_name, calendar in notebooks.items():
-            _LOGGER.debug("Indexing %s with %s entries", note_name, len(calendar.journal))
-            for found_journal_entries in itertools.batched(calendar.journal, BATCH_SIZE):
-                _LOGGER.debug("Examining batch of %s to index", len(found_journal_entries))
-                ids = [journal_entry.uid or "" for journal_entry in found_journal_entries]
-                results = collection.get(
-                    ids=ids,
-                    include=["documents"]
+            _LOGGER.debug(
+                "Indexing %s with %s entries", note_name, len(calendar.journal)
+            )
+            for found_journal_entries in itertools.batched(
+                calendar.journal, BATCH_SIZE
+            ):
+                _LOGGER.debug(
+                    "Examining batch of %s to index", len(found_journal_entries)
                 )
+                ids = [
+                    journal_entry.uid or "" for journal_entry in found_journal_entries
+                ]
+                results = collection.get(ids=ids, include=[IncludeEnum.documents])
                 _LOGGER.debug("Results: %s", results)
                 existing_ids = {
                     uid: documents
-                    for uid, documents in zip(results["ids"], results.get("documents") or [])
+                    for uid, documents in zip(
+                        results["ids"], results.get("documents") or []
+                    )
                 }
                 if existing_ids:
                     _LOGGER.debug("Found %s existing documents", len(existing_ids))
@@ -94,11 +100,17 @@ class VectorDB:
                     if existing_content is None or entry_content != existing_content:
                         journal_entries.append(journal_entry)
                         documents.append(entry_content)
-                        metadatas.append({
-                            "category": journal_entry.categories[0] if journal_entry.categories else "",
-                            "date": journal_entry.dtstart.isoformat(),
-                            "name": journal_entry.summary or "",
-                        })
+                        metadatas.append(
+                            {
+                                "category": (
+                                    journal_entry.categories[0]
+                                    if journal_entry.categories
+                                    else ""
+                                ),
+                                "date": journal_entry.dtstart.isoformat(),
+                                "name": journal_entry.summary or "",
+                            }
+                        )
                 ids = [journal_entry.uid or "" for journal_entry in journal_entries]
                 if not ids:
                     _LOGGER.debug("Skipping batch of unchanged documents")
