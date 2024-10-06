@@ -45,10 +45,11 @@ See https://github.com/allenporter/supernote-llm
   - [ ] Structured output => Journal demo
   - [ ] Queue for processing media content
 - State management
-  - [ ] Metadata store of media source uri sources
-  - [ ] Compute hashes of media source content to determine changes
+  - [x] Metadata store of media source uri sources
+  - [x] Compute hashes of media source content to determine changes
   - [ ] Persist journal in .ics
   - [ ] Merge existing journal contents with ingested processed media
+  - [ ] etag support
 - Visibility
   - [x] Entities associated with a device service
   - [ ] Sensors exporting diagnostic information like last time processed

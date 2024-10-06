@@ -4,6 +4,10 @@ A media source is a browsable directory of media files. This library will scan
 the media source for files and directories. This library keeps track of the hash
 of the contents of each file and will publish an event when the content has changed
 since the last scan.
+
+This actually fetches the media content to determine if it has changed, so the
+source must be resiliant to frequent requests. This works well for local sources
+where it would be reading a local file anyway.
 """
 
 import hashlib
