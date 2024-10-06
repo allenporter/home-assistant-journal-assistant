@@ -22,6 +22,7 @@ from .const import (
     CONF_NOTES,
     DEFAULT_NOTES,
     CONF_API_KEY,
+    CONF_MEDIA_SOURCE,
 )
 
 
@@ -31,6 +32,9 @@ CONFIG_FLOW = {
             {
                 vol.Required(CONF_NAME): cv.string,
                 vol.Required(CONF_API_KEY): cv.string,
+                vol.Required(CONF_MEDIA_SOURCE): selector.MediaSelector(
+                    selector.MediaSelectorConfig()
+                ),
                 vol.Required(
                     CONF_NOTES, default="\n".join(DEFAULT_NOTES)
                 ): selector.TextSelector(selector.TextSelectorConfig(multiline=True)),

@@ -12,7 +12,7 @@ import pytest
 from homeassistant.const import Platform, CONF_NAME
 from homeassistant.core import HomeAssistant
 from homeassistant.setup import async_setup_component
-
+from homeassistant.components.media_source import URI_SCHEME
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
 )
@@ -21,10 +21,13 @@ from custom_components.journal_assistant.const import (
     DOMAIN,
     CONF_NOTES,
     CONF_API_KEY,
+    CONF_MEDIA_SOURCE,
 )
 
 _LOGGER = logging.getLogger(__name__)
 
+TEST_DOMAIN = "test_domain"
+MEDIA_SOURCE_PREFIX = f"{URI_SCHEME}{TEST_DOMAIN}"
 FIXTURES_DIR = Path("tests/fixtures/")
 DOCUMENT_RESULT = {
     "id": hashlib.sha256("test".encode()).hexdigest(),
@@ -99,6 +102,9 @@ async def mock_config_entry(
             CONF_NAME: "My Journal",
             CONF_NOTES: "Daily\nWeekly\nMonthly",
             CONF_API_KEY: "12345",
+            CONF_MEDIA_SOURCE: {
+                "media_content_id": "",
+            },
         },
         title="My Journal",
     )

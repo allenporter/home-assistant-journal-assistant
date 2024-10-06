@@ -17,7 +17,6 @@ from homeassistant.components.media_source import (
     MediaSource,
     MediaSourceItem,
     PlayMedia,
-    URI_SCHEME,
 )
 
 from pytest_homeassistant_custom_component.common import (
@@ -36,12 +35,12 @@ from custom_components.journal_assistant.media_source_listener import (
     async_create_media_source_listener,
 )
 
+from .conftest import MEDIA_SOURCE_PREFIX, TEST_DOMAIN
+
 _LOGGER = logging.getLogger(__name__)
 
-TEST_DOMAIN = "test_domain"
 TEST_EVENT_NAME = "my-listener"
 TEST_CONFIG_ENTRY_ID = "test_config_entry_id"
-MEDIA_SOURCE_PREFIX = f"{URI_SCHEME}{TEST_DOMAIN}"
 
 
 @pytest.fixture(name="mock_integration")

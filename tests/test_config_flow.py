@@ -12,7 +12,10 @@ from custom_components.journal_assistant.const import (
     DOMAIN,
     CONF_NOTES,
     CONF_API_KEY,
+    CONF_MEDIA_SOURCE,
 )
+
+from .conftest import MEDIA_SOURCE_PREFIX
 
 
 async def test_config_flow(
@@ -33,6 +36,11 @@ async def test_config_flow(
             {
                 CONF_NAME: "Title",
                 CONF_API_KEY: "54321",
+                CONF_MEDIA_SOURCE: {
+                    "entity_id": "media_source.content",
+                    "media_content_id": f"{MEDIA_SOURCE_PREFIX}/content",
+                    "media_content_type": "image/jpeg",
+                },
             },
         )
         await hass.async_block_till_done()
@@ -44,5 +52,10 @@ async def test_config_flow(
         CONF_NAME: "Title",
         CONF_NOTES: "Daily\nWeekly\nMonthly",
         CONF_API_KEY: "54321",
+        CONF_MEDIA_SOURCE: {
+            "entity_id": "media_source.content",
+            "media_content_id": f"{MEDIA_SOURCE_PREFIX}/content",
+            "media_content_type": "image/jpeg",
+        },
     }
     assert len(mock_setup.mock_calls) == 1
