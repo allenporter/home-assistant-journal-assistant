@@ -2,18 +2,24 @@
 
 import re
 from typing import Any
+import pathlib
 
+import aiohttp
 import voluptuous as vol
 
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.exceptions import ServiceValidationError
-from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import config_validation as cv, aiohttp_client
+from homeassistant.components.media_source import (
+    async_browse_media,
+    async_resolve_media,
+)
 
 from .const import CONF_MEDIA_SOURCE, CONF_CONFIG_ENTRY_ID, DOMAIN
+from .storage import save_journal_entry
 
-
-MEDIA_SOURCE_URI_RE = re.compile(r"media-source://media_source/.+")
+MEDIA_SOURCE_URI_RE = re.compile(r"media-source://.+")
 
 
 def ensure_media_source_uri(value: Any) -> str:
@@ -21,7 +27,7 @@ def ensure_media_source_uri(value: Any) -> str:
     value_str = str(value)
     if not MEDIA_SOURCE_URI_RE.search(value_str):
         raise vol.Invalid(
-            f"The value should be a media source uri like media-source://media_source/<path>: {value}"
+            f"The value should be a media source uri like media-source://<path>: {value}"
         )
     return value_str
 
@@ -49,6 +55,49 @@ def async_register_services(hass: HomeAssistant) -> None:
                 translation_key="integration_not_found",
                 translation_placeholders={"target": DOMAIN},
             )
+
+        identifier = call.data[CONF_MEDIA_SOURCE]
+        browse = await async_browse_media(hass, identifier)
+        if not browse:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="media_source_not_found",
+                translation_placeholders={"media_source": identifier},
+            )
+        play_media = await async_resolve_media(
+            hass, identifier, target_media_player=None
+        )
+        if not play_media:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="media_source_not_resolved",
+                translation_placeholders={"media_source": identifier},
+            )
+        session = aiohttp_client.async_get_clientsession(hass)
+        try:
+            response = await session.request("get", play_media.url)
+            response.raise_for_status()
+            content = await response.read()
+        except aiohttp.ClientError as err:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="media_source_download_error",
+                translation_placeholders={"media_source": identifier},
+            ) from err
+
+        vision_model = config_entry.runtime_data.vision_model
+        try:
+            journal_page = await vision_model.process_journal_page(
+                pathlib.Path(browse.title), content
+            )
+        except ValueError as err:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="journal_page_processing_error",
+                translation_placeholders={"media_source": identifier},
+            ) from err
+
+        await save_journal_entry(hass, browse.title, journal_page)
 
     if not hass.services.has_service(DOMAIN, PROCESS_MEDIA_SERVICE):
         hass.services.async_register(

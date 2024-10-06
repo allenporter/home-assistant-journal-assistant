@@ -33,6 +33,15 @@
   "exceptions": {
     "integration_not_found": {
       "message": "Integration \"{target}\" not found in registry."
+    },
+    "media_source_not_found": {
+      "message": "Media source \"{media_source}\" not found."
+    },
+    "media_source_download_error": {
+      "message": "Error downloading media source \"{media_source}\"."
+    },
+    "journal_page_processing_error": {
+      "message": "Invalid vision model response format processing journal page from media source \"{media_source}\""
     }
   }
 }

@@ -4,6 +4,7 @@ from pathlib import Path
 import datetime
 import logging
 import hashlib
+from typing import cast
 
 from ical.calendar import Calendar
 from ical.journal import Journal
@@ -42,6 +43,30 @@ def get_dated_content(page: JournalPage) -> dict[str, list[str]]:
             dated_content[note_date] = []
         dated_content[note_date].append(f"- {note.content}")
     return dated_content
+
+
+def write_content(content: str, filename: Path) -> None:
+    """Write content to a file."""
+    with filename.open("w") as file:
+        file.write(content)
+
+
+def write_journal_page_yaml(
+    storage_dir: Path,
+    note_name: str,
+    page: JournalPage,
+) -> None:
+    """Write a journal page yaml string to a yaml file."""
+    if "-" not in note_name:
+        raise ValueError(f"Note name must contain a '-' character: {note_name}")
+    if not page.filename.startswith(note_name):
+        raise ValueError(
+            f"Note name must match page filename: {note_name} != {page.filename}"
+        )
+    filename = storage_dir / f"{note_name}.yaml"
+    _LOGGER.debug("Writing journal page to %s", filename)
+    content = cast(str, page.to_yaml())
+    write_content(content, filename)
 
 
 def journal_from_yaml(

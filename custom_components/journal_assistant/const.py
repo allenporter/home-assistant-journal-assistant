@@ -2,6 +2,7 @@
 
 DOMAIN = "journal_assistant"
 
+VISION_MODEL_NAME = "gemini-1.5-flash"
 CONF_API_KEY = "api_key"
 CONF_MEDIA_SOURCE = "media_source"
 CONF_NOTES = "notes"

@@ -10,8 +10,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 
 from .const import DEFAULT_NOTE_NAME, CONF_NOTES, DOMAIN
-from .processing.journal import journal_from_yaml
+from .processing.journal import journal_from_yaml, write_journal_page_yaml
 from .processing.vectordb import VectorDB
+from .processing.model import JournalPage
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -40,6 +41,19 @@ async def load_journal_entries(
         DEFAULT_NOTE_NAME,
     )
     return cast(dict[str, Calendar], result)
+
+
+async def save_journal_entry(
+    hass: HomeAssistant,
+    note_name: str,
+    page: JournalPage,
+) -> None:
+    await hass.async_add_executor_job(
+        write_journal_page_yaml,
+        journal_storage_path(hass),
+        note_name,
+        page,
+    )
 
 
 def _create_vector_db(

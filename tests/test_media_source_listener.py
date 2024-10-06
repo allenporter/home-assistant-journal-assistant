@@ -5,27 +5,17 @@ import datetime
 from http import HTTPStatus
 import logging
 from collections.abc import Generator
-from unittest.mock import Mock
 from contextlib import contextmanager
 
 from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntry, ConfigEntryState, ConfigFlow
-from homeassistant.setup import async_setup_component
 from homeassistant.components.media_player import MediaClass, MediaType
 from homeassistant.components.media_source import (
     BrowseMediaSource,
-    MediaSource,
-    MediaSourceItem,
     PlayMedia,
 )
 
 from pytest_homeassistant_custom_component.common import (
     async_capture_events,
-    MockConfigEntry,
-    MockModule,
-    mock_config_flow,
-    mock_integration,
-    mock_platform,
     async_fire_time_changed,
 )
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
@@ -35,7 +25,7 @@ from custom_components.journal_assistant.media_source_listener import (
     async_create_media_source_listener,
 )
 
-from .conftest import MEDIA_SOURCE_PREFIX, TEST_DOMAIN
+from .conftest import MEDIA_SOURCE_PREFIX, TEST_DOMAIN, MockMediaSource
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -43,101 +33,12 @@ TEST_EVENT_NAME = "my-listener"
 TEST_CONFIG_ENTRY_ID = "test_config_entry_id"
 
 
-@pytest.fixture(name="mock_integration")
-def mock_integration_fixture(hass: HomeAssistant) -> None:
-    """Fixture to set up a mock integration."""
-
-    async def async_setup_entry_init(
-        hass: HomeAssistant, config_entry: ConfigEntry
-    ) -> bool:
-        """Set up test config entry."""
-        await hass.config_entries.async_forward_entry_setups(config_entry, [])
-        return True
-
-    async def async_unload_entry_init(
-        hass: HomeAssistant,
-        config_entry: ConfigEntry,
-    ) -> bool:
-        await hass.config_entries.async_unload_platforms(config_entry, [])
-        return True
-
-    mock_integration(
-        hass,
-        MockModule(
-            TEST_DOMAIN,
-            async_setup_entry=async_setup_entry_init,
-            async_unload_entry=async_unload_entry_init,
-        ),
-    )
-
-
-class MockFlow(ConfigFlow):
-    """Test flow."""
-
-
-@pytest.fixture(name="mock_config_flow", autouse=True)
-def mock_config_flow_fixture(
-    hass: HomeAssistant, mock_integration: None
-) -> Generator[None]:
-    """Fixture to set up a mock config flow."""
-
-    mock_platform(hass, f"{TEST_DOMAIN}.config_flow")
-    with mock_config_flow(TEST_DOMAIN, MockFlow):
-        yield
-
-
-class MockMediaSource(MediaSource):
-    """A mock media source that returns faked responses."""
-
-    name = "Supernote Cloud"
-
-    def __init__(self) -> None:
-        """Initialize the media source."""
-        super().__init__(TEST_DOMAIN)
-        self.resolve_response: dict[str | None, PlayMedia] = {}
-        self.browse_response: dict[str | None, BrowseMediaSource] = {}
-
-    async def async_resolve_media(self, item: MediaSourceItem) -> PlayMedia:
-        """Resolve media identifier."""
-        _LOGGER.debug("Resolving media %s", item.identifier)
-        return self.resolve_response[item.identifier]
-
-    async def async_browse_media(self, item: MediaSourceItem) -> BrowseMediaSource:
-        """Return details about the media source."""
-        _LOGGER.debug("Browsing media %s", item.identifier)
-        return self.browse_response[item.identifier]
-
-
-@pytest.fixture(name="mock_media_source", autouse=True)
-def mock_media_source_fixture(hass: HomeAssistant) -> MockMediaSource:
-    """Fixture to set up a mock media source."""
-    return MockMediaSource()
-
-
-@pytest.fixture(name="mock_media_source_platform", autouse=True)
-async def mock_media_source_platform_fixture(
-    hass: HomeAssistant, mock_integration: None, mock_media_source: MockMediaSource
+@pytest.fixture(autouse=True)
+async def setup_testss(
+    mock_media_source_platform: None,
 ) -> None:
-    """Fixture to set up a mock integration."""
-
-    async def async_get_media_source(hass: HomeAssistant) -> MediaSource:
-        return mock_media_source
-
-    mock_media_source_platform = Mock()
-    mock_media_source_platform.async_get_media_source = async_get_media_source
-    mock_platform(
-        hass,
-        f"{TEST_DOMAIN}.media_source",
-        mock_media_source_platform,
-    )
-
-    config_entry = MockConfigEntry(domain=TEST_DOMAIN)
-    config_entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(config_entry.entry_id)
-    await hass.async_block_till_done()
-    assert config_entry.state is ConfigEntryState.LOADED
-
-    await async_setup_component(hass, "media_source", {})
+    """Set up the tests pre-requisites."""
+    pass
 
 
 @contextmanager
