@@ -73,6 +73,7 @@ class MediaSourceListener:
             private=True,
         )
         self._unsub_refresh: CALLBACK_TYPE | None = None
+        _LOGGER.info("Creating media source listener for %s", self._media_source_prefix)
 
     def async_attach(self) -> None:
         """Attach an event listener."""
@@ -89,7 +90,7 @@ class MediaSourceListener:
 
     async def async_process_media(self, _: datetime.datetime) -> None:
         """Walk the directory structure and check for changes."""
-        _LOGGER.debug("Processing start")
+        _LOGGER.info("Processing changes in media source %s", self._media_source_prefix)
         session = aiohttp_client.async_get_clientsession(self._hass)
 
         data = await self._store.async_load() or {}

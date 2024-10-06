@@ -102,9 +102,7 @@ async def mock_config_entry(
             CONF_NAME: "My Journal",
             CONF_NOTES: "Daily\nWeekly\nMonthly",
             CONF_API_KEY: "12345",
-            CONF_MEDIA_SOURCE: {
-                "media_content_id": "",
-            },
+            CONF_MEDIA_SOURCE: TEST_DOMAIN,
         },
         title="My Journal",
     )

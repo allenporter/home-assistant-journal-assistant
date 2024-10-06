@@ -36,15 +36,17 @@ async def async_setup_entry(
     )
     async_register_services(hass)
     await async_register_llm_apis(hass, entry)
-    bullet_journal_processor.async_register(
-        hass, entry.entry_id, entry.options[CONF_MEDIA_SOURCE]
+
+    entry.async_on_unload(
+        bullet_journal_processor.async_register(
+            hass, entry.entry_id, entry.options[CONF_MEDIA_SOURCE]
+        )
     )
     return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    bullet_journal_processor.async_unregister(hass, entry.entry_id)
     return await hass.config_entries.async_unload_platforms(
         entry,
         PLATFORMS,

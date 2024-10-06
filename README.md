@@ -82,11 +82,18 @@ First time, prepare the environment:
 
 ```bash
 $ export PYTHONPATH="${PYTHONPATH}:${PWD}"
-$ hass -c config --script ensure_config
+$ hass -c /workspaces/config --script ensure_config
 ```
 
 From then on run home assistant:
 
 ```bash
-$ hass -c config
+$ hass -c /workspaces/config
+```
+
+Running with mulitple custom components
+```bash
+$ cd /workspaces/config
+$ ln -s ../../home-assistant-supernote-cloud/custom_components/supernote_cloud custom_components/supernote_cloud
+$ ln -s ../../home-assistant-journal-assistant/custom_components/journal_assistant custom_components/journal_assistant
 ```

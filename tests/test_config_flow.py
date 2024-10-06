@@ -36,11 +36,7 @@ async def test_config_flow(
             {
                 CONF_NAME: "Title",
                 CONF_API_KEY: "54321",
-                CONF_MEDIA_SOURCE: {
-                    "entity_id": "media_source.content",
-                    "media_content_id": f"{MEDIA_SOURCE_PREFIX}/content",
-                    "media_content_type": "image/jpeg",
-                },
+                CONF_MEDIA_SOURCE: "test-domain",
             },
         )
         await hass.async_block_till_done()
@@ -52,10 +48,6 @@ async def test_config_flow(
         CONF_NAME: "Title",
         CONF_NOTES: "Daily\nWeekly\nMonthly",
         CONF_API_KEY: "54321",
-        CONF_MEDIA_SOURCE: {
-            "entity_id": "media_source.content",
-            "media_content_id": f"{MEDIA_SOURCE_PREFIX}/content",
-            "media_content_type": "image/jpeg",
-        },
+        CONF_MEDIA_SOURCE: "test-domain",
     }
     assert len(mock_setup.mock_calls) == 1
