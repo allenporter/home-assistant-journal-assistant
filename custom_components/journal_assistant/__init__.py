@@ -12,7 +12,7 @@ from . import bullet_journal_processor
 from .const import DOMAIN, CONF_MEDIA_SOURCE
 from .services import async_register_services
 from .llm import async_register_llm_apis
-from .types import JournalAssistantConfigEntry
+from .types import JournalAssistantConfigEntry, JournalAssistantData
 from .storage import create_vector_db
 
 __all__ = [
@@ -29,7 +29,10 @@ async def async_setup_entry(
     hass: HomeAssistant, entry: JournalAssistantConfigEntry
 ) -> bool:
     """Set up a config entry."""
-    entry.runtime_data = await create_vector_db(hass, entry)
+    vector_db = await create_vector_db(hass, entry)
+    entry.runtime_data = JournalAssistantData(
+        vector_db=vector_db,
+    )
     await hass.config_entries.async_forward_entry_setups(
         entry,
         platforms=PLATFORMS,

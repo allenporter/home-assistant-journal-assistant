@@ -36,7 +36,7 @@ class VectorDBCountSensorEntity(SensorEntity):
     def __init__(self, entry: JournalAssistantConfigEntry) -> None:
         """Initialize the vector db count sensor."""
         self._attr_unique_id = f"{entry.entry_id}-vector-db-count"
-        self._db = entry.runtime_data
+        self._db = entry.runtime_data.vector_db
         self._attr_name = "Vector DB Count"
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry.entry_id)},

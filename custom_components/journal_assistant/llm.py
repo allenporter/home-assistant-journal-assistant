@@ -52,6 +52,7 @@ async def async_register_llm_apis(
 
     async_register_api(hass, JournalLLMApi(hass, entry))
 
+
 def _custom_serializer(obj: object) -> object:
     """Custom serializer for Journal Assistant objects."""
     return {"type": "string"}
@@ -94,7 +95,7 @@ class JournalLLMApi(API):
         self.hass = hass
         self.id = f"{DOMAIN}-{entry.entry_id}"
         self.name = entry.title
-        self.db = entry.runtime_data
+        self.db = entry.runtime_data.vector_db
 
     async def async_get_api_instance(self, llm_context: LLMContext) -> APIInstance:
         """Return the instance of the API."""
