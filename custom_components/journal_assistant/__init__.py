@@ -7,16 +7,17 @@ import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.components.media_source import URI_SCHEME
 
 import google.generativeai as genai
 
-from . import bullet_journal_processor
 from .const import DOMAIN, CONF_MEDIA_SOURCE, VISION_MODEL_NAME, CONF_API_KEY
 from .services import async_register_services
 from .llm import async_register_llm_apis
 from .types import JournalAssistantConfigEntry, JournalAssistantData
 from .storage import create_vector_db
 from .processing.vision_model import VisionModel
+from .media_source_listener import MediaSourceListener, ProcessMediaServiceCall
 
 __all__ = [
     "DOMAIN",
@@ -46,11 +47,16 @@ async def async_setup_entry(
     async_register_services(hass)
     await async_register_llm_apis(hass, entry)
 
-    entry.async_on_unload(
-        bullet_journal_processor.async_register(
-            hass, entry.entry_id, entry.options[CONF_MEDIA_SOURCE]
-        )
+    media_source = entry.options[CONF_MEDIA_SOURCE]
+    processor = MediaSourceListener(
+        hass,
+        entry.entry_id,
+        f"{URI_SCHEME}{media_source}",
+        ProcessMediaServiceCall(),
     )
+    processor.async_attach()
+    entry.async_on_unload(processor.async_detach)
+
     return True
 
 

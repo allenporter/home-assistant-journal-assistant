@@ -116,7 +116,9 @@ def async_register_services(hass: HomeAssistant) -> None:
                 translation_placeholders={"media_source": identifier},
             ) from err
 
-        await save_journal_entry(hass, browse.title, journal_page)
+        await save_journal_entry(
+            hass, config_entry.entry_id, browse.title, journal_page
+        )
 
     if not hass.services.has_service(DOMAIN, PROCESS_MEDIA_SERVICE):
         hass.services.async_register(

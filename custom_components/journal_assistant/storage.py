@@ -16,19 +16,24 @@ from .processing.model import JournalPage
 
 _LOGGER = logging.getLogger(__name__)
 
-STORAGE_PATH = f"{DOMAIN}/data"
+VECTOR_DB_STORAGE_PATH = f".storage/{DOMAIN}/{{config_entry_id}}/vectordb"
+JOURNAL_STORAGE_PATH = f".storage/{DOMAIN}/{{config_entry_id}}/journal"
 
 
-def journal_storage_path(hass: HomeAssistant) -> Path:
+def journal_storage_path(hass: HomeAssistant, config_entry_id: str) -> Path:
     """Return the storage path for yaml notebook files."""
     _LOGGER.debug("Calling storage_path")
-    return Path(hass.config.path(STORAGE_PATH))
+    return Path(
+        hass.config.path(JOURNAL_STORAGE_PATH.format(config_entry_id=config_entry_id))
+    )
 
 
-def vectordb_storage_path(hass: HomeAssistant) -> Path:
+def vectordb_storage_path(hass: HomeAssistant, config_entry_id: str) -> Path:
     """Return the storage path for yaml notebook files."""
     _LOGGER.debug("Calling storage_path")
-    return Path(hass.config.path(STORAGE_PATH))
+    return Path(
+        hass.config.path(VECTOR_DB_STORAGE_PATH.format(config_entry_id=config_entry_id))
+    )
 
 
 async def load_journal_entries(
@@ -36,7 +41,7 @@ async def load_journal_entries(
 ) -> dict[str, Calendar]:
     result = await hass.async_add_executor_job(
         journal_from_yaml,
-        journal_storage_path(hass),
+        journal_storage_path(hass, entry.entry_id),
         set(entry.options[CONF_NOTES].split("\n")),
         DEFAULT_NOTE_NAME,
     )
@@ -45,12 +50,13 @@ async def load_journal_entries(
 
 async def save_journal_entry(
     hass: HomeAssistant,
+    config_entry_id: str,
     note_name: str,
     page: JournalPage,
 ) -> None:
     await hass.async_add_executor_job(
         write_journal_page_yaml,
-        journal_storage_path(hass),
+        journal_storage_path(hass, config_entry_id),
         note_name,
         page,
     )
@@ -69,7 +75,7 @@ async def create_vector_db(hass: HomeAssistant, entry: ConfigEntry) -> VectorDB:
     entries = await load_journal_entries(hass, entry)
     vectordb = await hass.async_add_executor_job(
         _create_vector_db,
-        vectordb_storage_path(hass),
+        vectordb_storage_path(hass, entry.entry_id),
         entry.options["api_key"],
         entries,
     )

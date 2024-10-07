@@ -6,20 +6,20 @@ of the contents of each file and will publish an event when the content has chan
 since the last scan.
 
 This actually fetches the media content to determine if it has changed, so the
-source must be resiliant to frequent requests. This works well for local sources
+source must be resilient to frequent requests. This works well for local sources
 where it would be reading a local file anyway.
 """
 
 import hashlib
 import logging
 import datetime
-from typing import cast
+from abc import ABC, abstractmethod
 
 import aiohttp
 
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.components.media_source import (
-    URI_SCHEME,
     async_browse_media,
     async_resolve_media,
 )
@@ -27,51 +27,68 @@ from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers import aiohttp_client
 from homeassistant.helpers.storage import Store
 
-from .const import DOMAIN
+from .const import DOMAIN, CONF_MEDIA_SOURCE
 
 _LOGGER = logging.getLogger(__name__)
 
 STORAGE_VERSION = 1
-STORAGE_PATH = f"{DOMAIN}/media_source_listener/{{listener_id}}"
+HASH_STORAGE_PATH = f".storage/{DOMAIN}/{{config_entry_id}}/hashes"
 LISTENER_DATA_KEY = "listener"
-UPDATE_INTERVAL = datetime.timedelta(minutes=60)
+UPDATE_INTERVAL = datetime.timedelta(hours=6)
 
 
-def async_create_media_source_listener(
-    hass: HomeAssistant, media_source_domain: str, event_name: str
-) -> CALLBACK_TYPE:
-    """Register a hook to process media files.
+class ProcessItem(ABC):
+    """Base class for processing media items."""
 
-    Events will be published to the hook when media files are added or changed using the
-    listener_id as the event identifier.
-    """
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN].setdefault(LISTENER_DATA_KEY, {})
+    @abstractmethod
+    async def process(self, hass: HomeAssistant, identifier: str) -> bool:
+        """Process the media item.
 
-    listener = MediaSourceListener(hass, media_source_domain, event_name)
-    listener.async_attach()
+        Return True if the item was processed, or False if there is a retryable error.
+        """
 
-    hass.data[DOMAIN][LISTENER_DATA_KEY].update({event_name: listener})
 
-    return cast(CALLBACK_TYPE, listener.async_detach)
+class ProcessMediaServiceCall(ProcessItem):
+    """Base class for processing media items."""
+
+    async def process(self, hass: HomeAssistant, identifier: str) -> bool:
+        """Process the media item."""
+        try:
+            await hass.services.async_call(
+                DOMAIN,
+                "process_media",
+                {CONF_MEDIA_SOURCE: identifier},
+                blocking=True,
+            )
+        except ServiceValidationError as err:
+            _LOGGER.warning("Skipping process_media due to bad request: %s", err)
+            return True
+        except HomeAssistantError as err:
+            _LOGGER.error("Retryable error processing media content: %s", err)
+            return False
+        return True
 
 
 class MediaSourceListener:
     """Library for listening for content changes in a media source."""
 
     def __init__(
-        self, hass: HomeAssistant, media_source_domain: str, listener_id: str
+        self,
+        hass: HomeAssistant,
+        config_entry_id: str,
+        media_source_prefix: str,
+        process_item: ProcessItem,
     ) -> None:
         """Initialize the media source listener."""
         self._hass = hass
-        self._listener_id = listener_id
-        self._media_source_prefix = f"{URI_SCHEME}{media_source_domain}"
+        self._media_source_prefix = media_source_prefix
         self._store = Store(
             hass,
             version=STORAGE_VERSION,
-            key=STORAGE_PATH.format(listener_id=listener_id),
+            key=HASH_STORAGE_PATH.format(config_entry_id=config_entry_id),
             private=True,
         )
+        self._process_item = process_item
         self._unsub_refresh: CALLBACK_TYPE | None = None
         _LOGGER.info("Creating media source listener for %s", self._media_source_prefix)
 
@@ -131,19 +148,13 @@ class MediaSourceListener:
 
                 _LOGGER.debug("Media content has changed (%s bytes)", len(content))
 
-                # Publish an event indicating the content has changed
-                self._hass.bus.async_fire(
-                    self._listener_id,
-                    {
-                        "identifier": child.identifier,
-                        "title": child.title,
-                        "media_class": child.media_class,
-                        "media_content_type": child.media_content_type,
-                        "sha256": content_hash,
-                    },
-                )
+                # Process the media content
+                result = await self._process_item.process(self._hass, child.identifier)
+                if not result:
+                    _LOGGER.info("Error processing media content %s", child.identifier)
+                    continue
 
-                # Store the new hash
+                # Store the updated hash
                 hashes[child.identifier] = content_hash
                 data["hashes"] = hashes
                 await self._store.async_save(data)

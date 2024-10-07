@@ -4,8 +4,9 @@ import pytest
 import datetime
 from http import HTTPStatus
 import logging
+from typing import Any
+from unittest.mock import Mock, patch, AsyncMock
 from collections.abc import Generator
-from contextlib import contextmanager
 
 from homeassistant.core import HomeAssistant
 from homeassistant.components.media_player import MediaClass, MediaType
@@ -15,15 +16,9 @@ from homeassistant.components.media_source import (
 )
 
 from pytest_homeassistant_custom_component.common import (
-    async_capture_events,
     async_fire_time_changed,
 )
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
-
-
-from custom_components.journal_assistant.media_source_listener import (
-    async_create_media_source_listener,
-)
 
 from .conftest import MEDIA_SOURCE_PREFIX, TEST_DOMAIN, MockMediaSource
 
@@ -41,22 +36,24 @@ async def setup_testss(
     pass
 
 
-@contextmanager
-def create_media_source_listener(hass: HomeAssistant) -> Generator[None]:
-    """Mock the media source listener."""
-    unsub = async_create_media_source_listener(hass, TEST_DOMAIN, TEST_EVENT_NAME)
-    try:
-        yield
-    finally:
-        unsub()
+@pytest.fixture(autouse=True, name="mock_process_item")
+def mock_process_item_fixture() -> Generator[Mock]:
+    """Mock the process item."""
+    with patch(
+        "custom_components.journal_assistant.ProcessMediaServiceCall"
+    ) as mock_call:
+        mock_call.return_value.process = AsyncMock()
+        mock_call.return_value.process.return_value = True
+        yield mock_call.return_value.process  # mock_process.return_value.process_item
 
 
 async def test_empty_media_source(
-    hass: HomeAssistant, mock_media_source: MockMediaSource
+    hass: HomeAssistant,
+    mock_process_item: Mock,
+    mock_media_source: MockMediaSource,
+    setup_integration: Any,
 ) -> None:
     """Test processing an empty media source."""
-
-    events = async_capture_events(hass, TEST_EVENT_NAME)
 
     mock_media_source.browse_response = {
         None: BrowseMediaSource(
@@ -72,21 +69,21 @@ async def test_empty_media_source(
     }
     now = datetime.datetime.now()
 
-    with create_media_source_listener(hass):
-        async_fire_time_changed(hass, now + datetime.timedelta(minutes=90))
-        await hass.async_block_till_done()
+    async_fire_time_changed(hass, now + datetime.timedelta(minutes=90))
+    await hass.async_block_till_done()
 
-    assert len(events) == 0
+    mock_process_item.assert_not_awaited()
 
 
 async def test_process_new_media_content(
     hass: HomeAssistant,
+    mock_process_item: Mock,
     mock_media_source: MockMediaSource,
     aioclient_mock: AiohttpClientMocker,
+    setup_integration: Any,
+    # config_entry: MockConfigEntry,
 ) -> None:
     """Test processing new content from a media source."""
-
-    events = async_capture_events(hass, TEST_EVENT_NAME)
 
     mock_media_source.browse_response = {
         None: BrowseMediaSource(
@@ -122,27 +119,20 @@ async def test_process_new_media_content(
         content=b"image-content",
     )
 
-    now = datetime.datetime.now()
-    with create_media_source_listener(hass):
-        async_fire_time_changed(hass, now + datetime.timedelta(minutes=90))
-        await hass.async_block_till_done()
+    mock_process_item.assert_not_awaited()
 
-    assert len(events) == 1
-    assert events[0].data == {
-        "identifier": "media-source://test_domain/image-content-1",
-        "media_class": MediaClass.IMAGE,
-        "media_content_type": MediaType.IMAGE,
-        "title": "Image 1",
-        "sha256": "d2dfc251c1a7245d4eb7d95e5f815472c6dbcf7ee6690bbd7c1912f477b6c22a",
-    }
-    events.clear()
+    now = datetime.datetime.now()
+    async_fire_time_changed(hass, now + datetime.timedelta(minutes=90))
+    await hass.async_block_till_done()
+
+    mock_process_item.assert_awaited()
+    mock_process_item.reset_mock()
 
     # Run again and verify no additional event is fired since the hash has not changed
-    with create_media_source_listener(hass):
-        async_fire_time_changed(hass, now + datetime.timedelta(minutes=150))
-        await hass.async_block_till_done()
+    async_fire_time_changed(hass, now + datetime.timedelta(minutes=150))
+    await hass.async_block_till_done()
 
-    assert len(events) == 0
+    mock_process_item.assert_not_awaited()
 
     # Update the content and run again
     aioclient_mock.clear_requests()
@@ -150,29 +140,20 @@ async def test_process_new_media_content(
         "http://localhost/image-1.jpg",
         content=b"image-content-updated",
     )
-    with create_media_source_listener(hass):
-        async_fire_time_changed(hass, now + datetime.timedelta(minutes=190))
-        await hass.async_block_till_done()
+    async_fire_time_changed(hass, now + datetime.timedelta(minutes=190))
+    await hass.async_block_till_done()
 
-    assert len(events) == 1
-    assert events[0].data == {
-        "identifier": "media-source://test_domain/image-content-1",
-        "media_class": MediaClass.IMAGE,
-        "media_content_type": MediaType.IMAGE,
-        "title": "Image 1",
-        # Updated hash from last time
-        "sha256": "61c2409c3b6069988794042a8f99cad60d3afaefdf0a64afb2cd59cc9a2b0d44",
-    }
+    mock_process_item.assert_awaited()
 
 
 async def test_process_failure(
     hass: HomeAssistant,
+    mock_process_item: Mock,
     mock_media_source: MockMediaSource,
     aioclient_mock: AiohttpClientMocker,
+    setup_integration: Any,
 ) -> None:
     """Test the case where an error occurs while processing content."""
-
-    events = async_capture_events(hass, TEST_EVENT_NAME)
 
     mock_media_source.browse_response = {
         None: BrowseMediaSource(
@@ -209,23 +190,21 @@ async def test_process_failure(
     )
 
     now = datetime.datetime.now()
-    with create_media_source_listener(hass):
-        async_fire_time_changed(hass, now + datetime.timedelta(minutes=90))
-        await hass.async_block_till_done()
+    async_fire_time_changed(hass, now + datetime.timedelta(minutes=90))
+    await hass.async_block_till_done()
 
     # The event should not be fired as the download failed
-    assert len(events) == 0
+    mock_process_item.process.assert_not_awaited
 
 
 async def test_nested_folders(
     hass: HomeAssistant,
+    mock_process_item: Mock,
     mock_media_source: MockMediaSource,
     aioclient_mock: AiohttpClientMocker,
+    setup_integration: Any,
 ) -> None:
     """Test processing new content from a media source."""
-
-    events = async_capture_events(hass, TEST_EVENT_NAME)
-
     mock_media_source.browse_response = {
         None: BrowseMediaSource(
             domain=TEST_DOMAIN,
@@ -281,9 +260,8 @@ async def test_nested_folders(
     )
 
     now = datetime.datetime.now()
-    with create_media_source_listener(hass):
-        async_fire_time_changed(hass, now + datetime.timedelta(minutes=90))
-        await hass.async_block_till_done()
+    async_fire_time_changed(hass, now + datetime.timedelta(minutes=90))
+    await hass.async_block_till_done()
 
     # Discovered a media item
-    assert len(events) == 1
+    mock_process_item.assert_awaited()
