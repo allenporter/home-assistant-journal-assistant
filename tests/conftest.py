@@ -58,7 +58,7 @@ def auto_enable_custom_integrations(
 
 
 @pytest.fixture(name="platforms")
-def mock_platforms() -> list[Platform]:
+def mock_platforms_fixture() -> list[Platform]:
     """Fixture for platforms loaded by the integration."""
     return []
 
@@ -86,26 +86,13 @@ def mock_vectordb() -> Generator[Mock, None, None]:
         yield mock_vectordb
 
 
-@pytest.fixture(name="setup_integration")
-async def mock_setup_integration(
-    hass: HomeAssistant,
-    journal_storage_path: Path,
-    mock_vectordb: Mock,
-    config_entry: MockConfigEntry,
-    platforms: list[Platform],
-) -> AsyncGenerator[None, None]:
-    """Set up the integration."""
-
-    with patch(f"custom_components.{DOMAIN}.PLATFORMS", platforms):
-        assert await async_setup_component(hass, DOMAIN, {})
-        await hass.async_block_till_done()
-        yield
-
-
 @pytest.fixture(name="config_entry")
 async def mock_config_entry(
     hass: HomeAssistant,
-) -> MockConfigEntry:
+    journal_storage_path: Path,
+    mock_vectordb: Mock,
+    platforms: list[Platform],
+) -> AsyncGenerator[MockConfigEntry]:
     """Fixture to create a configuration entry."""
     config_entry = MockConfigEntry(
         data={},
@@ -114,14 +101,16 @@ async def mock_config_entry(
             CONF_NAME: "My Journal",
             CONF_NOTES: "Daily\nWeekly\nMonthly",
             CONF_API_KEY: "12345",
-            CONF_MEDIA_SOURCE: TEST_DOMAIN,
+            CONF_MEDIA_SOURCE: MEDIA_SOURCE_PREFIX,
         },
         title="My Journal",
     )
     config_entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(config_entry.entry_id)
-    await hass.async_block_till_done()
-    return config_entry
+
+    with patch(f"custom_components.{DOMAIN}.PLATFORMS", platforms):
+        assert await hass.config_entries.async_setup(config_entry.entry_id)
+        await hass.async_block_till_done()
+        yield config_entry
 
 
 @pytest.fixture(name="mock_integration")

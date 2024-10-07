@@ -28,7 +28,7 @@ async def setup_testss(
     pass
 
 
-@pytest.mark.usefixtures("setup_integration")
+@pytest.mark.usefixtures("config_entry")
 async def test_process_media(
     hass: HomeAssistant,
     config_entry: MockConfigEntry,
@@ -83,7 +83,7 @@ async def test_process_media(
         )
 
 
-@pytest.mark.usefixtures("setup_integration")
+@pytest.mark.usefixtures("config_entry")
 async def test_invalid_media_source_uri(
     hass: HomeAssistant,
     config_entry: MockConfigEntry,
@@ -103,32 +103,11 @@ async def test_invalid_media_source_uri(
         )
 
 
-@pytest.mark.usefixtures("setup_integration")
+@pytest.mark.usefixtures("config_entry")
 async def test_invalid_config_entry(
     hass: HomeAssistant,
-    config_entry: MockConfigEntry,
 ) -> None:
     """Test service call with invalid media source URI."""
-    assert hass.services.has_service(DOMAIN, "process_media")
-
-    with pytest.raises(ServiceValidationError, match="not found in registry"):
-        await hass.services.async_call(
-            DOMAIN,
-            "process_media",
-            {
-                "media_source": f"{MEDIA_SOURCE_PREFIX}/Daily-01-P20221030210760068713clbdtpKcEWTi.note",
-                "config_entry_id": "invalid-config-entry",
-            },
-            blocking=True,
-        )
-
-
-@pytest.mark.usefixtures("setup_integration")
-async def test_process_journal_page(
-    hass: HomeAssistant,
-    config_entry: MockConfigEntry,
-) -> None:
-    """Test service call to process a journal page."""
     assert hass.services.has_service(DOMAIN, "process_media")
 
     with pytest.raises(ServiceValidationError, match="not found in registry"):

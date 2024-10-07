@@ -3,6 +3,7 @@
 import pytest
 
 from homeassistant.core import HomeAssistant
+from homeassistant.const import Platform
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.llm import (
     LLMContext,
@@ -11,7 +12,13 @@ from homeassistant.helpers.llm import (
 )
 
 
-@pytest.mark.usefixtures("setup_integration")
+@pytest.fixture(name="platforms")
+def mock_platforms_fixture() -> list[Platform]:
+    """Fixture for platforms loaded by the integration."""
+    return [Platform.CALENDAR]
+
+
+@pytest.mark.usefixtures("config_entry")
 async def test_journal_llm_api(
     hass: HomeAssistant,
     config_entry: ConfigEntry,

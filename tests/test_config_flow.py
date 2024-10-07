@@ -15,8 +15,6 @@ from custom_components.journal_assistant.const import (
     CONF_MEDIA_SOURCE,
 )
 
-from .conftest import MEDIA_SOURCE_PREFIX
-
 
 async def test_config_flow(
     hass: HomeAssistant,
@@ -36,7 +34,7 @@ async def test_config_flow(
             {
                 CONF_NAME: "Title",
                 CONF_API_KEY: "54321",
-                CONF_MEDIA_SOURCE: "test-domain",
+                CONF_MEDIA_SOURCE: "media-source://test-domain/0",
             },
         )
         await hass.async_block_till_done()
@@ -48,6 +46,6 @@ async def test_config_flow(
         CONF_NAME: "Title",
         CONF_NOTES: "Daily\nWeekly\nMonthly",
         CONF_API_KEY: "54321",
-        CONF_MEDIA_SOURCE: "test-domain",
+        CONF_MEDIA_SOURCE: "media-source://test-domain/0",
     }
     assert len(mock_setup.mock_calls) == 1

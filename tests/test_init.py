@@ -10,7 +10,7 @@ from pytest_homeassistant_custom_component.common import (
 )
 
 
-@pytest.mark.usefixtures("setup_integration")
+@pytest.mark.usefixtures("config_entry")
 async def test_init(
     hass: HomeAssistant,
     config_entry: MockConfigEntry,

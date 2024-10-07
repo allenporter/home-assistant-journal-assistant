@@ -18,7 +18,7 @@ from ical.journal import Journal
 
 _LOGGER = logging.getLogger(__name__)
 
-BATCH_SIZE = 5
+BATCH_SIZE = 10
 COLLECTION_NAME = "journal_assistant"
 MODEL = "models/text-embedding-004"
 

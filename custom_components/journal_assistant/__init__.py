@@ -7,7 +7,6 @@ import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.components.media_source import URI_SCHEME
 
 import google.generativeai as genai
 
@@ -26,7 +25,7 @@ __all__ = [
 _LOGGER = logging.getLogger(__name__)
 
 
-PLATFORMS = (Platform.CALENDAR, Platform.SENSOR)
+PLATFORMS = (Platform.BUTTON, Platform.CALENDAR, Platform.SENSOR)
 
 
 async def async_setup_entry(
@@ -36,26 +35,31 @@ async def async_setup_entry(
     genai.configure(api_key=entry.options[CONF_API_KEY])
     model = genai.GenerativeModel(model_name=VISION_MODEL_NAME)
     vector_db = await create_vector_db(hass, entry)
+
+    media_source = entry.options[CONF_MEDIA_SOURCE]
+    listener = MediaSourceListener(
+        hass,
+        entry.entry_id,
+        media_source,
+        ProcessMediaServiceCall(entry.entry_id),
+    )
+
     entry.runtime_data = JournalAssistantData(
         vector_db=vector_db,
         vision_model=VisionModel(model),
+        media_source_listener=listener,
     )
     await hass.config_entries.async_forward_entry_setups(
         entry,
         platforms=PLATFORMS,
     )
-    async_register_services(hass)
-    await async_register_llm_apis(hass, entry)
 
-    media_source = entry.options[CONF_MEDIA_SOURCE]
-    processor = MediaSourceListener(
-        hass,
-        entry.entry_id,
-        f"{URI_SCHEME}{media_source}",
-        ProcessMediaServiceCall(),
-    )
-    processor.async_attach()
-    entry.async_on_unload(processor.async_detach)
+    async_register_services(hass)
+
+    listener.async_attach()
+    entry.async_on_unload(listener.async_detach)
+
+    await async_register_llm_apis(hass, entry)
 
     return True
 

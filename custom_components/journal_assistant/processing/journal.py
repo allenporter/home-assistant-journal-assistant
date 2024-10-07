@@ -63,6 +63,7 @@ def write_journal_page_yaml(
         raise ValueError(
             f"Note name must match page filename: {note_name} != {page.filename}"
         )
+    storage_dir.mkdir(parents=True, exist_ok=True)
     filename = storage_dir / f"{note_name}.yaml"
     _LOGGER.debug("Writing journal page to %s", filename)
     content = cast(str, page.to_yaml())

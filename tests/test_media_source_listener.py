@@ -4,7 +4,6 @@ import pytest
 import datetime
 from http import HTTPStatus
 import logging
-from typing import Any
 from unittest.mock import Mock, patch, AsyncMock
 from collections.abc import Generator
 
@@ -29,7 +28,7 @@ TEST_CONFIG_ENTRY_ID = "test_config_entry_id"
 
 
 @pytest.fixture(autouse=True)
-async def setup_testss(
+async def setup_tests(
     mock_media_source_platform: None,
 ) -> None:
     """Set up the tests pre-requisites."""
@@ -47,11 +46,11 @@ def mock_process_item_fixture() -> Generator[Mock]:
         yield mock_call.return_value.process  # mock_process.return_value.process_item
 
 
+@pytest.mark.usefixtures("config_entry")
 async def test_empty_media_source(
     hass: HomeAssistant,
     mock_process_item: Mock,
     mock_media_source: MockMediaSource,
-    setup_integration: Any,
 ) -> None:
     """Test processing an empty media source."""
 
@@ -75,13 +74,12 @@ async def test_empty_media_source(
     mock_process_item.assert_not_awaited()
 
 
+@pytest.mark.usefixtures("config_entry")
 async def test_process_new_media_content(
     hass: HomeAssistant,
     mock_process_item: Mock,
     mock_media_source: MockMediaSource,
     aioclient_mock: AiohttpClientMocker,
-    setup_integration: Any,
-    # config_entry: MockConfigEntry,
 ) -> None:
     """Test processing new content from a media source."""
 
@@ -94,7 +92,7 @@ async def test_process_new_media_content(
             children=[
                 BrowseMediaSource(
                     domain=TEST_DOMAIN,
-                    identifier=f"{MEDIA_SOURCE_PREFIX}/image-content-1",
+                    identifier="image-content-1",
                     media_class=MediaClass.IMAGE,
                     media_content_type=MediaType.IMAGE,
                     title="Image 1",
@@ -146,12 +144,12 @@ async def test_process_new_media_content(
     mock_process_item.assert_awaited()
 
 
+@pytest.mark.usefixtures("config_entry")
 async def test_process_failure(
     hass: HomeAssistant,
     mock_process_item: Mock,
     mock_media_source: MockMediaSource,
     aioclient_mock: AiohttpClientMocker,
-    setup_integration: Any,
 ) -> None:
     """Test the case where an error occurs while processing content."""
 
@@ -197,12 +195,12 @@ async def test_process_failure(
     mock_process_item.process.assert_not_awaited
 
 
+@pytest.mark.usefixtures("config_entry")
 async def test_nested_folders(
     hass: HomeAssistant,
     mock_process_item: Mock,
     mock_media_source: MockMediaSource,
     aioclient_mock: AiohttpClientMocker,
-    setup_integration: Any,
 ) -> None:
     """Test processing new content from a media source."""
     mock_media_source.browse_response = {
@@ -214,7 +212,7 @@ async def test_nested_folders(
             children=[
                 BrowseMediaSource(
                     domain=TEST_DOMAIN,
-                    identifier=f"{MEDIA_SOURCE_PREFIX}/folder-1",
+                    identifier="folder-1",
                     media_class=MediaClass.ALBUM,
                     media_content_type=MediaType.ALBUM,
                     title="Folder 1",
@@ -234,7 +232,7 @@ async def test_nested_folders(
             children=[
                 BrowseMediaSource(
                     domain=TEST_DOMAIN,
-                    identifier=f"{MEDIA_SOURCE_PREFIX}/image-content-1",
+                    identifier="image-content-1",
                     media_class=MediaClass.IMAGE,
                     media_content_type=MediaType.IMAGE,
                     title="Image 1",

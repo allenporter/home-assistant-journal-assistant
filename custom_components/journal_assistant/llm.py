@@ -106,7 +106,7 @@ class JournalLLMApi(API):
             api_prompt=prompt,
             llm_context=llm_context,
             tools=[VectorSearchTool(self.db)],
-            custom_serializer=_custom_serializer,
+            # custom_serializer=_custom_serializer,
         )
 
 

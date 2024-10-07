@@ -1,4 +1,4 @@
-"""Test a calendar entity."""
+"""Test a sensor entity."""
 
 import urllib
 from http import HTTPStatus
@@ -7,13 +7,20 @@ import pytest
 from syrupy import SnapshotAssertion
 
 from homeassistant.core import HomeAssistant
+from homeassistant.const import Platform
 
 from pytest_homeassistant_custom_component.typing import (
     ClientSessionGenerator,
 )
 
 
-@pytest.mark.usefixtures("setup_integration")
+@pytest.fixture(name="platforms")
+def mock_platforms_fixture() -> list[Platform]:
+    """Fixture for platforms loaded by the integration."""
+    return [Platform.CALENDAR]
+
+
+@pytest.mark.usefixtures("config_entry")
 async def test_calendar(
     hass: HomeAssistant,
     hass_client: ClientSessionGenerator,

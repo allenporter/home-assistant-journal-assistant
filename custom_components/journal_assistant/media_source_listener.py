@@ -21,18 +21,24 @@ from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.components.media_source import (
     async_browse_media,
+    URI_SCHEME,
     async_resolve_media,
+    Unresolvable,
+)
+from homeassistant.components.media_player.errors import BrowseError
+from homeassistant.components.media_player.browse_media import (
+    async_process_play_media_url,
 )
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers import aiohttp_client
 from homeassistant.helpers.storage import Store
 
-from .const import DOMAIN, CONF_MEDIA_SOURCE
+from .const import DOMAIN, CONF_MEDIA_SOURCE, CONF_CONFIG_ENTRY_ID
 
 _LOGGER = logging.getLogger(__name__)
 
 STORAGE_VERSION = 1
-HASH_STORAGE_PATH = f".storage/{DOMAIN}/{{config_entry_id}}/hashes"
+HASH_STORAGE_PATH = f"{DOMAIN}/{{config_entry_id}}/hashes"
 LISTENER_DATA_KEY = "listener"
 UPDATE_INTERVAL = datetime.timedelta(hours=6)
 
@@ -51,13 +57,20 @@ class ProcessItem(ABC):
 class ProcessMediaServiceCall(ProcessItem):
     """Base class for processing media items."""
 
+    def __init__(self, config_entry_id: str) -> None:
+        """Initialize the process media service call."""
+        self._config_entry_id = config_entry_id
+
     async def process(self, hass: HomeAssistant, identifier: str) -> bool:
         """Process the media item."""
         try:
             await hass.services.async_call(
                 DOMAIN,
                 "process_media",
-                {CONF_MEDIA_SOURCE: identifier},
+                {
+                    CONF_MEDIA_SOURCE: identifier,
+                    CONF_CONFIG_ENTRY_ID: self._config_entry_id,
+                },
                 blocking=True,
             )
         except ServiceValidationError as err:
@@ -91,6 +104,7 @@ class MediaSourceListener:
         self._process_item = process_item
         self._unsub_refresh: CALLBACK_TYPE | None = None
         _LOGGER.info("Creating media source listener for %s", self._media_source_prefix)
+        self._scanning = False
 
     def async_attach(self) -> None:
         """Attach an event listener."""
@@ -107,6 +121,17 @@ class MediaSourceListener:
 
     async def async_process_media(self, _: datetime.datetime) -> None:
         """Walk the directory structure and check for changes."""
+        if self._scanning:
+            _LOGGER.debug("Media source listener is already scanning; Skipping")
+            return
+        self._scanning = True
+        try:
+            await self._async_process_media()
+        finally:
+            self._scanning = False
+
+    async def _async_process_media(self) -> None:
+        """Walk the directory structure and check for changes."""
         _LOGGER.info("Processing changes in media source %s", self._media_source_prefix)
         session = aiohttp_client.async_get_clientsession(self._hass)
 
@@ -117,22 +142,32 @@ class MediaSourceListener:
         while queue:
             identifier = queue.pop()
             _LOGGER.debug("Processing media %s", identifier)
-            browse = await async_browse_media(self._hass, identifier)
+            try:
+                browse = await async_browse_media(self._hass, identifier)
+            except BrowseError as err:
+                _LOGGER.error("Error browsing media %s: %s", identifier, err)
+                continue
             _LOGGER.debug("Media has %s children", len(browse.children))
             for child in browse.children:
+                child_identifier = f"{URI_SCHEME}{child.domain}/{child.identifier}"
                 if child.can_expand:
-                    queue.append(child.identifier)
+                    queue.append(child_identifier)
                     continue
 
-                _LOGGER.debug("Processing media content %s", child.identifier)
+                _LOGGER.debug("Processing media content %s", child_identifier)
                 # Can't expand, this is the media file.
-                play_media = await async_resolve_media(
-                    self._hass, child.identifier, target_media_player=None
-                )
-                _LOGGER.debug("Fetching media content %s", play_media.url)
+                try:
+                    play_media = await async_resolve_media(
+                        self._hass, child_identifier, target_media_player=None
+                    )
+                except Unresolvable as err:
+                    _LOGGER.error("Error resolving media %s: %s", child_identifier, err)
+                    continue
+                url = async_process_play_media_url(self._hass, play_media.url)
+                _LOGGER.debug("Fetching media content %s", url)
                 # Download the content and compare the hash to determine if it has changed.
                 try:
-                    response = await session.request("get", play_media.url)
+                    response = await session.request("get", url)
                     response.raise_for_status()
                     content = await response.read()
                 except aiohttp.ClientError as err:
@@ -142,20 +177,20 @@ class MediaSourceListener:
                     continue
 
                 content_hash = hashlib.sha256(content).hexdigest()
-                if content_hash == hashes.get(child.identifier):
+                if content_hash == hashes.get(child_identifier):
                     _LOGGER.debug("Media content has not changed, skipping")
                     continue
 
                 _LOGGER.debug("Media content has changed (%s bytes)", len(content))
 
                 # Process the media content
-                result = await self._process_item.process(self._hass, child.identifier)
+                result = await self._process_item.process(self._hass, child_identifier)
                 if not result:
-                    _LOGGER.info("Error processing media content %s", child.identifier)
+                    _LOGGER.info("Error processing media content %s", child_identifier)
                     continue
 
                 # Store the updated hash
-                hashes[child.identifier] = content_hash
+                hashes[child_identifier] = content_hash
                 data["hashes"] = hashes
                 await self._store.async_save(data)
 

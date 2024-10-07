@@ -41,20 +41,18 @@ See https://github.com/allenporter/supernote-llm
   - [ ] Call conversation agent with placeholder prompt
   - [x] Storage area for dynamic prompts
   - [x] Multi-modal call that outputs yaml structured output
-  - [ ] (re)process a media uri on demand
-  - [ ] Structured output => Journal demo
-  - [ ] Queue for processing media content
+  - [x] (re)process a media uri on demand
+  - [x] Structured output => Journal demo
 - State management
   - [x] Metadata store of media source uri sources
   - [x] Compute hashes of media source content to determine changes
   - [ ] Persist journal in .ics
-  - [ ] Merge existing journal contents with ingested processed media
+  - [x] Merge existing journal contents with ingested processed media
   - [ ] etag support
 - Visibility
   - [x] Entities associated with a device service
   - [ ] Sensors exporting diagnostic information like last time processed
   - [x] Sensor exporting # of journal entries
-  - [ ] Event entities? exposed when content is updated
 - Journal Entity
   - [ ] Update tests to use service calls for reads
   - [ ] Support for additions to a journal (calendar)
@@ -69,12 +67,16 @@ See https://github.com/allenporter/supernote-llm
   - [x] Query database from tool end to end test
   - [x] persistence of database
   - [x] understand embedding functions
-  - [ ] support deleting documents and removig from index
+  - [ ] support deleting documents and removing from index
   - [ ] support more google models in config flow
   - [ ] support alternative embedding models
 - [ ] support reload of config entries
 - [ ] support removing config entries, cleaning up database
 - [ ] make vetordb indexing asynchronous
+- [ ] reload vector db after updating index
+- [ ] sensor for # of raw yaml files in total
+- [ ] sensor for # of pages for each notebook prefix
+- [ ] sensor with processor counts of total # of processed (total_increasing?)
 
 ## Local Development
 
@@ -91,7 +93,8 @@ From then on run home assistant:
 $ hass -c /workspaces/config
 ```
 
-Running with mulitple custom components
+Running with multiple custom components
+
 ```bash
 $ cd /workspaces/config
 $ ln -s ../../home-assistant-supernote-cloud/custom_components/supernote_cloud custom_components/supernote_cloud

@@ -1,30 +1,23 @@
-"""Test a calendar entity."""
+"""Test a button entity."""
 
 import pytest
-from syrupy import SnapshotAssertion
 
 from homeassistant.core import HomeAssistant
 from homeassistant.const import Platform
-
-from pytest_homeassistant_custom_component.typing import (
-    ClientSessionGenerator,
-)
 
 
 @pytest.fixture(name="platforms")
 def mock_platforms_fixture() -> list[Platform]:
     """Fixture for platforms loaded by the integration."""
-    return [Platform.SENSOR]
+    return [Platform.BUTTON]
 
 
 @pytest.mark.usefixtures("config_entry")
-async def test_calendar(
+async def test_button(
     hass: HomeAssistant,
-    hass_client: ClientSessionGenerator,
-    snapshot: SnapshotAssertion,
 ) -> None:
     """Test a calendar entity."""
 
-    state = hass.states.get("sensor.my_journal_vector_db_count")
+    state = hass.states.get("button.my_journal_process_media")
     assert state is not None
-    assert state.state == "7"
+    assert state.state == "unknown"
