@@ -143,9 +143,9 @@ class VectorDB:
             (id_list := results.get("ids")) is None
             or (metadata_list := results.get("metadatas")) is None
             or (document_list := results.get("documents")) is None
+            or (distance_list := results.get("distances")) is None
         ):
             raise ValueError(f"Invalid query results: {results}")
-        distance_list = results.get("distances")
         # Get the results for the first (and only) query
         ids = id_list[0]
         metadatas = metadata_list[0]

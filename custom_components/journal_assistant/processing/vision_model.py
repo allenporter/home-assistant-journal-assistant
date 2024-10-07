@@ -6,7 +6,6 @@ import re
 import logging
 import json
 import yaml
-from typing import cast
 import datetime
 from pathlib import Path
 
@@ -49,7 +48,7 @@ def _parse_model_response(response_text: str) -> str:
         if v is None or v == "null":
             del obj[k]
 
-    return cast(str, yaml.dump(obj, explicit_start=True, sort_keys=False))
+    return yaml.dump(obj, explicit_start=True, sort_keys=False)  # type: ignore[no-any-return]
 
 
 class VisionModel:
