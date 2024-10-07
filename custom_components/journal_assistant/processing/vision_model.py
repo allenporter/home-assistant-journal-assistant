@@ -1,5 +1,6 @@
 """Multi-modal vision model for processing journal pages."""
 
+import asyncio
 import io
 import re
 import logging
@@ -18,7 +19,7 @@ from .model import JournalPage
 
 _LOGGER = logging.getLogger(__name__)
 
-TIMESTAMP_RE = re.compile(r".*?-\d+-P(\d{20}).*.png")
+TIMESTAMP_RE = re.compile(r".*?-\d+-P(\d{20}).*?")
 
 FILE_PROMPT = """
 Please answer in json with no other formatting since the answer will be parsed programmatically.
@@ -67,11 +68,13 @@ class VisionModel:
         """
         _LOGGER.debug("Extract content from page %s", str(page_name))
 
-        created_at: datetime.datetime | None = None
-        if (re_match := TIMESTAMP_RE.match(str(page_name))) is not None:
-            created_at = datetime.datetime.strptime(re_match.group(1), "%Y%m%d%H%M%S%f")
+        if (re_match := TIMESTAMP_RE.match(str(page_name))) is None:
+            raise ValueError(f"Error extracting timestamp from {str(page_name)}")
+        _LOGGER.debug("Timestamp match: %s", re_match.group(1))
+        created_at = datetime.datetime.strptime(re_match.group(1), "%Y%m%d%H%M%S%f")
 
-        prompts = get_dynamic_prompts(page_name)
+        loop = asyncio.get_event_loop()
+        prompts = await loop.run_in_executor(None, get_dynamic_prompts, page_name)
         prompt = "\n\n".join([p.as_prompt() for p in prompts])
 
         img = PIL.Image.open(io.BytesIO(page_content))

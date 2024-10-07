@@ -1,6 +1,7 @@
 """Module for loading and managing prompts."""
 
 import logging
+from functools import cache
 import re
 import datetime
 from pathlib import Path
@@ -40,6 +41,7 @@ Content:
 """
 
 
+@cache
 def _load_dynamic_prompts() -> dict[str, DynamicPrompt]:
     """Load all dynamic prompts from the prompts directory."""
 

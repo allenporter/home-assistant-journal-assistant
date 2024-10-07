@@ -14,7 +14,7 @@ async def test_processing_markdown_response() -> None:
     mock_response = Mock()
     mock_response.text = """```json
 {
-    "filename": "Daily-01-P20221030210760068713clbdtpKcEWTi.png",
+    "filename": "Daily-01-P20221030210759068713clbdtpKcEWTi.png",
     "created_at": "2022-10-30T21:07:60.068713",
     "label": "daily",
     "date": "2022-10-30"
@@ -28,9 +28,9 @@ async def test_processing_markdown_response() -> None:
         "custom_components.journal_assistant.processing.vision_model.PIL.Image.open"
     ):
         result = await vision_model.process_journal_page(
-            Path("Daily-2023-12-19"), b"content"
+            Path("Daily-01-P20221030210759068713clbdtpKcEWTi"), b"content"
         )
-    assert result.filename == "Daily-01-P20221030210760068713clbdtpKcEWTi.png"
+    assert result.filename == "Daily-01-P20221030210759068713clbdtpKcEWTi.png"
     assert result.created_at == "2022-10-30T21:07:60.068713"
     assert result.label == "daily"
     assert result.date == "2022-10-30"
@@ -40,8 +40,8 @@ async def test_processing_json_response() -> None:
     """Test processing a journal page."""
     mock_response = Mock()
     mock_response.text = """{
-    "filename": "Daily-01-P20221030210760068713clbdtpKcEWTi.png",
-    "created_at": "2022-10-30T21:07:60.068713",
+    "filename": "Daily-01-P20221030210759068713clbdtpKcEWTi.png",
+    "created_at": "2022-10-30T21:07:59.068713",
     "label": "daily",
     "date": "2022-10-30"
 }"""
@@ -53,9 +53,9 @@ async def test_processing_json_response() -> None:
         "custom_components.journal_assistant.processing.vision_model.PIL.Image.open"
     ):
         result = await vision_model.process_journal_page(
-            Path("Daily-2023-12-19"), b"content"
+            Path("Daily-01-P20221030210759068713clbdtpKcEWTi"), b"content"
         )
-    assert result.filename == "Daily-01-P20221030210760068713clbdtpKcEWTi.png"
-    assert result.created_at == "2022-10-30T21:07:60.068713"
+    assert result.filename == "Daily-01-P20221030210759068713clbdtpKcEWTi.png"
+    assert result.created_at == "2022-10-30T21:07:59.068713"
     assert result.label == "daily"
     assert result.date == "2022-10-30"
