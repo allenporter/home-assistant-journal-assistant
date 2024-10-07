@@ -96,7 +96,10 @@ def journal_from_yaml(
 
         dated_content: dict[str, list[str]] = {}
         for page in pages:
-            dated_content.update(get_dated_content(page))
+            for date, content_list in get_dated_content(page).items():
+                if date not in dated_content:
+                    dated_content[date] = []
+                dated_content[date].extend(content_list)
 
         if key_name not in journals:
             journals[key_name] = Calendar()

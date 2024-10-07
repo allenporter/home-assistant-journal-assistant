@@ -77,6 +77,7 @@ See https://github.com/allenporter/supernote-llm
 - [ ] sensor for # of raw yaml files in total
 - [ ] sensor for # of pages for each notebook prefix
 - [ ] sensor with processor counts of total # of processed (total_increasing?)
+- [ ] monthly/quarterly reflections not showing up, check on details
 
 ## Local Development
 

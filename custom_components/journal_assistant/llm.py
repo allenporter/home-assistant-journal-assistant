@@ -42,7 +42,7 @@ When the user asks a question, you can call a tool to search their journal and
 use the journal content to inform your response. The individual notes in the
 journal are exposed as entities in the Home Assistant and are listed below.
 """
-NUM_RESULTS = 15
+NUM_RESULTS = 10
 
 
 async def async_register_llm_apis(

@@ -145,14 +145,17 @@ class VectorDB:
             or (document_list := results.get("documents")) is None
         ):
             raise ValueError(f"Invalid query results: {results}")
+        distance_list = results.get("distances")
         # Get the results for the first (and only) query
         ids = id_list[0]
         metadatas = metadata_list[0]
         documents = document_list[0]
+        distances = distance_list[0]
         return [
             {
                 "id": ids[index],
                 "content": documents[index],
+                "score": distances[index],
                 **metadatas[index],
             }
             for index in range(len(ids))
