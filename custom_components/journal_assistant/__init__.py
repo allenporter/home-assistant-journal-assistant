@@ -16,7 +16,7 @@ from .llm import async_register_llm_apis
 from .types import JournalAssistantConfigEntry, JournalAssistantData
 from .storage import create_vector_db
 from .processing.vision_model import VisionModel
-from .media_source_listener import MediaSourceListener, ProcessMediaServiceCall
+from .media_source_processor import MediaSourceProcessor, ProcessMediaServiceCall
 
 __all__ = [
     "DOMAIN",
@@ -37,7 +37,7 @@ async def async_setup_entry(
     vector_db = await create_vector_db(hass, entry)
 
     media_source = entry.options[CONF_MEDIA_SOURCE]
-    listener = MediaSourceListener(
+    processor = MediaSourceProcessor(
         hass,
         entry.entry_id,
         media_source,
@@ -47,7 +47,7 @@ async def async_setup_entry(
     entry.runtime_data = JournalAssistantData(
         vector_db=vector_db,
         vision_model=VisionModel(model),
-        media_source_listener=listener,
+        media_source_processor=processor,
     )
     await hass.config_entries.async_forward_entry_setups(
         entry,
@@ -56,8 +56,8 @@ async def async_setup_entry(
 
     async_register_services(hass)
 
-    listener.async_attach()
-    entry.async_on_unload(listener.async_detach)
+    processor.async_attach()
+    entry.async_on_unload(processor.async_detach)
 
     await async_register_llm_apis(hass, entry)
 

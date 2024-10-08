@@ -35,7 +35,7 @@ class ProcessMediaButtonEntity(ButtonEntity):
     def __init__(self, entry: JournalAssistantConfigEntry) -> None:
         """Initialize the process media button entity."""
         self._attr_unique_id = f"{entry.entry_id}-process-media"
-        self._listener = entry.runtime_data.media_source_listener
+        self._processor = entry.runtime_data.media_source_processor
         self._attr_name = "Process Media"
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry.entry_id)},
@@ -45,5 +45,5 @@ class ProcessMediaButtonEntity(ButtonEntity):
     async def async_press(self) -> None:
         """Handle the button press."""
         self.hass.async_create_task(
-            self._listener.async_process_media(datetime.datetime.now())
+            self._processor.async_process_media(datetime.datetime.now())
         )

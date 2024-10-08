@@ -82,7 +82,7 @@ class ProcessMediaServiceCall(ProcessItem):
         return True
 
 
-class MediaSourceListener:
+class MediaSourceProcessor:
     """Library for listening for content changes in a media source."""
 
     def __init__(
