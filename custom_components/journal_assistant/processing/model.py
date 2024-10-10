@@ -2,9 +2,9 @@
 
 import pathlib
 from typing import Any
+from dataclasses import dataclass, field
 
 import yaml
-from dataclasses import dataclass, field
 from mashumaro.config import BaseConfig
 from mashumaro.mixins.yaml import DataClassYAMLMixin
 from mashumaro.mixins.json import DataClassJSONMixin

@@ -81,7 +81,7 @@ journal are exposed as entities in the Home Assistant and are listed below.
     )
     function_response = await llm_api.async_call_tool(tool_input)
     assert function_response == {
-        "query": "today",
+        "query": {"query": "today", "num_results": 10},
         "results": [
             {
                 "content": "document",

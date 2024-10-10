@@ -6,6 +6,7 @@ from typing import Any
 from unittest.mock import patch
 import hashlib
 import tempfile
+import datetime
 
 import chromadb
 
@@ -42,7 +43,9 @@ class FakeEmbeddingFunction(chromadb.EmbeddingFunction):
         result: chromadb.Embeddings = []
         for item in input:
             self.embeds += 1
-            result.append([ord(c) for c in hashlib.sha256(item.encode()).hexdigest()][0:3])
+            result.append(
+                [ord(c) for c in hashlib.sha256(item.encode()).hexdigest()][0:3]
+            )
         return result
 
 
@@ -57,7 +60,9 @@ def mock_embedding_function() -> Generator[FakeEmbeddingFunction, None, None]:
         yield fake_embedding
 
 
-def test_vectordb_loading(storage_path: Path, embedding_function: FakeEmbeddingFunction) -> None:
+def test_vectordb_loading(
+    storage_path: Path, embedding_function: FakeEmbeddingFunction
+) -> None:
     """Test parsing a journal page."""
 
     entries = journal_from_yaml(Path("tests/fixtures"), {"Daily", "Monthly"}, "Journal")
@@ -66,7 +71,7 @@ def test_vectordb_loading(storage_path: Path, embedding_function: FakeEmbeddingF
 
     # Add the first entry to the index
     k_v = next(iter(entries.items()))
-    first_entry = { k_v[0]: k_v[1] }
+    first_entry = {k_v[0]: k_v[1]}
 
     db = vectordb.VectorDB(storage_path, "12345")
     db.upsert_index(first_entry)
@@ -78,11 +83,13 @@ def test_vectordb_loading(storage_path: Path, embedding_function: FakeEmbeddingF
 
     assert db.count() == 6
 
-    results = db.query("example", num_results=5)
+    results = db.query(vectordb.QueryParams(query="example", num_results=5))
     assert len(results) == 5
     assert results[0].keys() == {"id", "content", "date", "name", "category", "score"}
     assert results[0]["category"] in ("Daily", "Journal", "Monthly")
-    assert results[0]["content"] == """categories:
+    assert (
+        results[0]["content"]
+        == """categories:
 - Daily
 description: '- migrate Dec to supernote
 
@@ -100,3 +107,37 @@ description: '- migrate Dec to supernote
 dtstart: 2023-12-19
 summary: Daily 2023-12-19
 """
+    )
+
+    results = db.query(
+        vectordb.QueryParams(
+            query="note",
+            category="Daily",
+            date_range=(datetime.date(2023, 12, 21), datetime.date(2023, 12, 21)),
+            num_results=5,
+        )
+    )
+    assert len(results) == 1
+    assert results[0].keys() == {"id", "content", "date", "name", "category", "score"}
+    assert results[0]["category"] == "Daily"
+    assert (
+        results[0]["content"]
+        == """categories:
+- Daily
+description: '- cardboard breakdown
+
+  - Bowling w/ Q
+
+  - flux-local helm
+
+  - todo urls?
+
+  - gifts plan
+
+  - windows xmas lights
+
+  - fitbit python'
+dtstart: 2023-12-21
+summary: Daily 2023-12-21
+"""
+    )

@@ -15,7 +15,7 @@ from homeassistant.helpers.llm import Tool, ToolInput
 from homeassistant.util.json import JsonObjectType
 
 from .const import DOMAIN
-from .processing.vectordb import VectorDB
+from .processing.vectordb import VectorDB, QueryParams
 from .types import JournalAssistantConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
@@ -69,10 +69,24 @@ class VectorSearchTool(Tool):
     """Journal Assistant vector search tool."""
 
     name = "search_journal"
-    description = "Perform a free-text vector search on the journal returning relevant document chunks."
+    description = "Perform a free-text vector search on one or more journals journal returning relevant document chunks."
     parameters = vol.Schema(
         {
-            "query": cv.string,
+            "query": vol.Optional(
+                cv.string, description="Query term to search the journal for."
+            ),
+            "notebook_name": vol.Optional(
+                cv.string,
+                description="Optional name of the notebook/journal to search, otherwise searches all notebooks.",
+            ),
+            "date_range": vol.Optional(
+                {
+                    "start": cv.datetime,
+                    "end": cv.datetime,
+                },
+                default=None,
+                description="Optional date range to search within (inclusive).",
+            ),
         }
     )
 
@@ -85,11 +99,20 @@ class VectorSearchTool(Tool):
     ) -> JsonObjectType:
         """Call the tool."""
         _LOGGER.debug("Calling search_journal tool with %s", tool_input.tool_args)
-        query = tool_input.tool_args["query"]
-        results = await hass.async_add_executor_job(self._db.query, query, NUM_RESULTS)
+        query_params = QueryParams(
+            query=tool_input.tool_args.get("query"),
+            category=tool_input.tool_args.get("notebook_name"),
+            num_results=NUM_RESULTS,
+        )
+        if tool_input.tool_args.get("date_range"):
+            query_params.date_range = (
+                tool_input.tool_args.get("date_range", {}).get("start"),
+                tool_input.tool_args.get("date_range", {}).get("end"),
+            )
+        results = await hass.async_add_executor_job(self._db.query, query_params)
         _LOGGER.debug("Search results: %s", results)
         return {
-            "query": query,
+            "query": query_params.to_dict(omit_none=True),
             "results": results,
         }
 
@@ -115,7 +138,6 @@ class JournalLLMApi(API):
             api_prompt=prompt,
             llm_context=llm_context,
             tools=[VectorSearchTool(vector_db)],
-            # custom_serializer=_custom_serializer,
         )
 
 
