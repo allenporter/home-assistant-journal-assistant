@@ -56,7 +56,7 @@ async def async_setup_entry(
 
     async_register_services(hass)
 
-    processor.async_attach()
+    await processor.async_attach()
     entry.async_on_unload(processor.async_detach)
 
     await async_register_llm_apis(hass, entry)

@@ -43,5 +43,33 @@
     "journal_page_processing_error": {
       "message": "Invalid vision model response format processing journal page from media source \"{media_source}\""
     }
+  },
+  "entity": {
+    "sensor": {
+      "vector_db_count": {
+        "name": "Vector DB Count"
+      },
+      "scanned_files": {
+        "name": "Scanned Files"
+      },
+      "scanned_folders": {
+        "name": "Scanned Folders"
+      },
+      "processed_files": {
+        "name": "Processed Files"
+      },
+      "skipped_items": {
+        "name": "Skipped Items"
+      },
+      "errors": {
+        "name": "Errors"
+      },
+      "last_scan_start": {
+        "name": "Last Scan Start"
+      },
+      "last_scan_end": {
+        "name": "Last Scan End"
+      }
+    }
   }
 }

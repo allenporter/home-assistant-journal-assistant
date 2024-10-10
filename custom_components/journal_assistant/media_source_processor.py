@@ -16,6 +16,8 @@ import datetime
 from abc import ABC, abstractmethod
 
 import aiohttp
+from dataclasses import dataclass
+from mashumaro.mixins.json import DataClassJSONMixin
 
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
@@ -82,6 +84,19 @@ class ProcessMediaServiceCall(ProcessItem):
         return True
 
 
+@dataclass
+class ScanStats(DataClassJSONMixin):
+    """Statistics for a media source scan."""
+
+    scanned_folders: int = 0
+    scanned_files: int = 0
+    processed_files: int = 0
+    skipped_items: int = 0
+    errors: int = 0
+    last_scan_start: datetime.datetime | None = None
+    last_scan_end: datetime.datetime | None = None
+
+
 class MediaSourceProcessor:
     """Library for listening for content changes in a media source."""
 
@@ -105,12 +120,25 @@ class MediaSourceProcessor:
         self._unsub_refresh: CALLBACK_TYPE | None = None
         _LOGGER.info("Creating media source listener for %s", self._media_source_prefix)
         self._scanning = False
+        self._scan_stats = ScanStats()
 
-    def async_attach(self) -> None:
+    @property
+    def scanning(self) -> bool:
+        """Return if the listener is currently scanning."""
+        return self._scanning
+
+    @property
+    def scan_stats(self) -> ScanStats:
+        """Return the scan statistics."""
+        return self._scan_stats
+
+    async def async_attach(self) -> None:
         """Attach an event listener."""
         self._unsub_refresh = async_track_time_interval(
             self._hass, self.async_process_media, UPDATE_INTERVAL
         )
+        if (data := await self._store.async_load()) is not None:
+            self._scan_stats = ScanStats.from_dict(data.get("scan_stats"))
 
     @callback
     def async_detach(self) -> None:
@@ -138,6 +166,12 @@ class MediaSourceProcessor:
         data = await self._store.async_load() or {}
         hashes = data.get("hashes", {})
 
+        scan_stats = ScanStats()
+        scan_stats.last_scan_start = datetime.datetime.now()
+        data["scan_stats"] = scan_stats.to_dict()
+        await self._store.async_save(data)
+        self._scan_stats = scan_stats
+
         queue = [self._media_source_prefix]
         while queue:
             identifier = queue.pop()
@@ -146,14 +180,17 @@ class MediaSourceProcessor:
                 browse = await async_browse_media(self._hass, identifier)
             except BrowseError as err:
                 _LOGGER.error("Error browsing media %s: %s", identifier, err)
+                scan_stats.errors += 1
                 continue
             _LOGGER.debug("Media has %s children", len(browse.children))
             for child in browse.children:
                 child_identifier = f"{URI_SCHEME}{child.domain}/{child.identifier}"
                 if child.can_expand:
+                    scan_stats.scanned_folders += 1
                     queue.append(child_identifier)
                     continue
 
+                scan_stats.scanned_files += 1
                 _LOGGER.debug("Processing media content %s", child_identifier)
                 # Can't expand, this is the media file.
                 try:
@@ -162,6 +199,7 @@ class MediaSourceProcessor:
                     )
                 except Unresolvable as err:
                     _LOGGER.error("Error resolving media %s: %s", child_identifier, err)
+                    scan_stats.errors += 1
                     continue
                 url = async_process_play_media_url(self._hass, play_media.url)
                 _LOGGER.debug("Fetching media content %s", url)
@@ -174,24 +212,33 @@ class MediaSourceProcessor:
                     _LOGGER.error(
                         "Error downloading media content %s: %s", play_media.url, err
                     )
+                    scan_stats.errors += 1
                     continue
 
                 content_hash = hashlib.sha256(content).hexdigest()
                 if content_hash == hashes.get(child_identifier):
                     _LOGGER.debug("Media content has not changed, skipping")
+                    scan_stats.skipped_items += 1
                     continue
 
                 _LOGGER.debug("Media content has changed (%s bytes)", len(content))
 
                 # Process the media content
+                scan_stats.processed_files += 1
                 result = await self._process_item.process(self._hass, child_identifier)
                 if not result:
                     _LOGGER.info("Error processing media content %s", child_identifier)
+                    scan_stats.errors += 1
                     continue
 
                 # Store the updated hash
                 hashes[child_identifier] = content_hash
                 data["hashes"] = hashes
                 await self._store.async_save(data)
+
+        scan_stats.last_scan_end = datetime.datetime.now()
+        data["scan_stats"] = scan_stats.to_dict()
+        await self._store.async_save(data)
+        self._scan_stats = scan_stats
 
         _LOGGER.debug("Processing ended")
