@@ -6,8 +6,9 @@ from unittest.mock import patch, Mock
 from pathlib import Path
 import hashlib
 
-
 import pytest
+from syrupy.extensions.amber import AmberSnapshotExtension
+from syrupy.location import PyTestLocation
 
 from homeassistant.const import Platform, CONF_NAME
 from homeassistant.core import HomeAssistant
@@ -47,6 +48,18 @@ DOCUMENT_RESULT = {
     "notebook": "Daily",
 }
 
+DIFFERENT_DIRECTORY = "__snapshots__"
+
+
+class DifferentDirectoryExtension(AmberSnapshotExtension):
+    @classmethod
+    def dirname(cls, *, test_location: "PyTestLocation") -> str:
+        return str(Path(test_location.filepath).parent.joinpath(DIFFERENT_DIRECTORY))
+
+
+@pytest.fixture
+def snapshot(snapshot):
+    return snapshot.use_extension(DifferentDirectoryExtension)
 
 @pytest.fixture(autouse=True)
 def auto_enable_custom_integrations(
