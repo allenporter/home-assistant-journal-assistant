@@ -110,6 +110,7 @@ class MediaSourceProcessor:
         """Initialize the media source listener."""
         self._hass = hass
         self._media_source_prefix = media_source_prefix
+        self._config_entry_id = config_entry_id
         self._store = Store(
             hass,
             version=STORAGE_VERSION,
@@ -242,3 +243,9 @@ class MediaSourceProcessor:
         self._scan_stats = scan_stats
 
         _LOGGER.debug("Processing ended")
+
+        if scan_stats.processed_files:
+            _LOGGER.info("Reloading integration to update processed results")
+            self._hass.async_create_task(
+                self._hass.config_entries.async_reload(self._config_entry_id)
+            )

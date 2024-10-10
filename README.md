@@ -38,7 +38,6 @@ See https://github.com/allenporter/supernote-llm
 - Processing
   - [x] conversation agent in config flow
   - [x] Create output storage directory for yaml
-  - [ ] Call conversation agent with placeholder prompt
   - [x] Storage area for dynamic prompts
   - [x] Multi-modal call that outputs yaml structured output
   - [x] (re)process a media uri on demand
@@ -51,7 +50,7 @@ See https://github.com/allenporter/supernote-llm
   - [ ] etag support
 - Visibility
   - [x] Entities associated with a device service
-  - [ ] Sensors exporting diagnostic information like last time processed
+  - [x] Sensors exporting diagnostic information like last time processed
   - [x] Sensor exporting # of journal entries
 - Journal Entity
   - [ ] Update tests to use service calls for reads
@@ -67,17 +66,17 @@ See https://github.com/allenporter/supernote-llm
   - [x] Query database from tool end to end test
   - [x] persistence of database
   - [x] understand embedding functions
-  - [ ] support deleting documents and removing from index
+  - [x] support deleting documents and removing from index
   - [ ] support more google models in config flow
   - [ ] support alternative embedding models
-- [ ] support reload of config entries
-- [ ] support removing config entries, cleaning up database
-- [ ] make vetordb indexing asynchronous
-- [ ] reload vector db after updating index
-- [ ] sensor for # of raw yaml files in total
-- [ ] sensor for # of pages for each notebook prefix
-- [ ] sensor with processor counts of total # of processed (total_increasing?)
-- [ ] monthly/quarterly reflections not showing up, check on details
+- [x] support reload of config entries
+- [x] support removing config entries, cleaning up database
+- [x] make vetordb indexing asynchronous
+- [x] reload vector db after updating index
+- [x] sensor for # of raw yaml files in total
+- [x] sensor for # of pages for each notebook prefix
+- [x] sensor with processor counts of total # of processed (total_increasing?)
+- [x] monthly/quarterly reflections not showing up, check on details
 
 ## Local Development
 

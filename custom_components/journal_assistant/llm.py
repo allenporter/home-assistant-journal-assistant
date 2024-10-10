@@ -10,6 +10,7 @@ from homeassistant.helpers import (
     config_validation as cv,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.llm import Tool, ToolInput
 from homeassistant.util.json import JsonObjectType
 
@@ -50,7 +51,13 @@ async def async_register_llm_apis(
 ) -> None:
     """Register LLM APIs for Journal Assistant."""
 
-    async_register_api(hass, JournalLLMApi(hass, entry))
+    # The config entry may be reloaded, but we only register a single LLM API.
+    # We keep track of the id then lookup any details at runtime in case objects
+    # on the config entry are reloaded or changed.
+    try:
+        async_register_api(hass, JournalLLMApi(hass, entry.title, entry.entry_id))
+    except HomeAssistantError as err:
+        _LOGGER.debug("Error registering Journal Assistant LLM APIs: %s", err)
 
 
 def _custom_serializer(obj: object) -> object:
@@ -90,22 +97,24 @@ class VectorSearchTool(Tool):
 class JournalLLMApi(API):
     """Journal Assistant LLM API."""
 
-    def __init__(self, hass: HomeAssistant, entry: JournalAssistantConfigEntry) -> None:
+    def __init__(self, hass: HomeAssistant, name: str, entry_id: str) -> None:
         """Initialize the LLM API."""
         self.hass = hass
-        self.id = f"{DOMAIN}-{entry.entry_id}"
-        self.name = entry.title
-        self.db = entry.runtime_data.vector_db
+        self.id = f"{DOMAIN}-{entry_id}"
+        self.name = name
+        self._entry_id = entry_id
 
     async def async_get_api_instance(self, llm_context: LLMContext) -> APIInstance:
         """Return the instance of the API."""
+        config_entry = self.hass.config_entries.async_get_entry(self._entry_id)
+        vector_db = config_entry.runtime_data.vector_db
         exposed_entities = _get_exposed_entities(self.hass)
         prompt = "\n".join([PROMPT, yaml.dump(list(exposed_entities.values()))])
         return APIInstance(
             api=self,
             api_prompt=prompt,
             llm_context=llm_context,
-            tools=[VectorSearchTool(self.db)],
+            tools=[VectorSearchTool(vector_db)],
             # custom_serializer=_custom_serializer,
         )
 
