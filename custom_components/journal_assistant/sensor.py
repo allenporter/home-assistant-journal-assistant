@@ -109,7 +109,6 @@ class VectorDBCountSensorEntity(SensorEntity):
 
     entity_description: JournalAssistantSensorEntityDescription
     _attr_has_entity_name = True
-    _attr_state_class = "measurement"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
