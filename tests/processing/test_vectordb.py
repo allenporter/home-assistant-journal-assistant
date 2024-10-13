@@ -10,7 +10,7 @@ import datetime
 
 import chromadb
 import numpy as np
-
+from syrupy import SnapshotAssertion
 import pytest
 
 from custom_components.journal_assistant.const import DOMAIN
@@ -64,7 +64,9 @@ def mock_embedding_function() -> Generator[FakeEmbeddingFunction, None, None]:
 
 
 def test_vectordb_loading(
-    storage_path: Path, embedding_function: FakeEmbeddingFunction
+    storage_path: Path,
+    embedding_function: FakeEmbeddingFunction,
+    snapshot: SnapshotAssertion,
 ) -> None:
     """Test parsing a journal page."""
 
@@ -89,59 +91,22 @@ def test_vectordb_loading(
             for entry in calendar.journal
         ]
     )
-    assert embedding_function.embeds == 6
+    assert embedding_function.embeds == 7
 
-    assert db.count() == 6
+    assert db.count() == 7
 
-    results = db.query(vectordb.QueryParams(query="example", num_results=5))
+    results = db.query(vectordb.QueryParams(query="tree", num_results=5))
     assert len(results) == 5
-    assert results[0].keys() == {"id", "content", "date", "name", "category", "score"}
-    assert results[0]["category"] in ("Daily", "Journal", "Monthly")
-    assert (
-        results[0]["content"]
-        == """categories:
-- Daily
-description: '- migrate Dec to supernote
-  - set Plans w/ mom
-  - (migrated) call Dad re xmas plan
-  - gifts info to mom & Sam
-  - prod readiness pass
-  - xmas tree
-  - Dot template: darker 5mm'
-dtstart: 2023-12-19
-summary: Daily 2023-12-19
-"""
-    )
+    assert results[0] == snapshot
 
+    # Limit results to a single date
     results = db.query(
         vectordb.QueryParams(
-            query="note",
+            query="gifts",
             category="Daily",
             date_range=(datetime.date(2023, 12, 21), datetime.date(2023, 12, 21)),
             num_results=5,
         )
     )
     assert len(results) == 1
-    assert results[0].keys() == {"id", "content", "date", "name", "category", "score"}
-    assert results[0]["category"] == "Daily"
-    assert (
-        results[0]["content"]
-        == """categories:
-- Daily
-description: '- cardboard breakdown
-
-  - Bowling w/ Q
-
-  - flux-local helm
-
-  - todo urls?
-
-  - gifts plan
-
-  - windows xmas lights
-
-  - fitbit python'
-dtstart: 2023-12-21
-summary: Daily 2023-12-21
-"""
-    )
+    assert results[0] == snapshot

@@ -75,6 +75,21 @@
     }),
     dict({
       'categories': list([
+        'Journal',
+        'Weekly',
+      ]),
+      'description': '''
+        - What progress did I make last week?
+          - established working group
+          - performance sessions complete
+          - Knott's Berry farm trip
+          - Finished recording AOT tracks
+      ''',
+      'dtstart': datetime.datetime(2024, 10, 7, 7, 13, 23, 418273),
+      'summary': 'Weekly 2024-10-07T07:13:23.418273',
+    }),
+    dict({
+      'categories': list([
         'Monthly',
       ]),
       'description': '''

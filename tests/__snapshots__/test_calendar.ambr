@@ -10,12 +10,12 @@
       }),
       'Daily 2023-12-19',
       '''
-        - migrate Dec to supernote
+        - (completed) migrate Dec to supernote
         - set Plans w/ mom
-        - call Dad re xmas plan
+        - (migrated) call Dad re xmas plan
         - gifts info to mom & Sam
         - prod readiness pass
-        - xmas tree
+        - (migrated) xmas tree
         - Dot template: darker 5mm
       ''',
     ),
@@ -28,14 +28,14 @@
       }),
       'Daily 2023-12-20',
       '''
-        - xmas tree
+        - (migrated) xmas tree
         - text mom for xmas day
         - call Dad: xmas plans
-        - gifts plan w/ Cathrine
+        - (migrated) gifts plan w/ Cathrine
         - recognition vs old notes
         - living room clutter
         - okay of the house activity
-        - super note box clean up
+        - (migrated) super note box clean up
         - flux-local helm magic
       ''',
     ),
@@ -49,12 +49,12 @@
       'Daily 2023-12-21',
       '''
         - cardboard breakdown
-        - Bowling w/ Q
-        - flux-local helm
+        - (migrated) Bowling w/ Q
+        - (completed) flux-local helm
         - todo urls?
-        - gifts plan
+        - (migrated) gifts plan
         - windows xmas lights
-        - fitbit python
+        - (migrated) fitbit python
       ''',
     ),
     tuple(

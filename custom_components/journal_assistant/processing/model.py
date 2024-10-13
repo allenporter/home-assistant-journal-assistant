@@ -42,8 +42,8 @@ class Prompt(DataClassYAMLMixin, DataClassJSONMixin):
 class RapidLogEntry:
     """A rapid log entry."""
 
-    type: str
-    content: str
+    type: str = field(default="note")
+    content: str = field(default="")
     status: str | None = None
     label: str | None = None
     critical: bool | None = None
