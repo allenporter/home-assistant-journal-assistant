@@ -56,7 +56,9 @@ async def async_register_llm_apis(
     # We keep track of the id then lookup any details at runtime in case objects
     # on the config entry are reloaded or changed.
     try:
-        async_register_api(hass, JournalLLMApi(hass, entry.title, entry.entry_id))
+        async_register_api(
+            hass, JournalLLMApi(hass, entry.title, entry.entry_id, entry.title)
+        )
     except HomeAssistantError as err:
         _LOGGER.debug("Error registering Journal Assistant LLM APIs: %s", err)
 
@@ -68,9 +70,9 @@ class VectorSearchTool(Tool):
     description = "Perform a free-text vector search on one or more journals returning relevant document chunks."
     parameters = vol.Schema(
         {
-            vol.Optional(
+            vol.Required(
                 "query",
-                description="Free-text query used to search for document chunks across journals.",
+                description="Free-text query used to search and rank document chunks across journals.",
             ): cv.string,
             vol.Optional(
                 "notebook_name",
@@ -94,9 +96,10 @@ class VectorSearchTool(Tool):
         }
     )
 
-    def __init__(self, db: VectorDB) -> None:
+    def __init__(self, db: VectorDB, entry_title: str) -> None:
         """Initialize the tool."""
         self._db = db
+        self._entry_title = entry_title
 
     async def async_call(
         self, hass: HomeAssistant, tool_input: ToolInput, llm_context: LLMContext
@@ -109,6 +112,12 @@ class VectorSearchTool(Tool):
             category=args.get("notebook_name"),
             num_results=NUM_RESULTS,
         )
+        # Hack to strip the notebook name so it matches the vectordb category field. This matches
+        # the logic entity id logic in calendar entity.
+        if query_params.category is not None and query_params.category.startswith(
+            self._entry_title
+        ):
+            query_params.category = query_params.category[len(self._entry_title) + 1 :]
         if args.get("date_range"):
             query_params.date_range = (
                 args.get("date_range", {}).get("start"),
@@ -125,12 +134,15 @@ class VectorSearchTool(Tool):
 class JournalLLMApi(API):
     """Journal Assistant LLM API."""
 
-    def __init__(self, hass: HomeAssistant, name: str, entry_id: str) -> None:
+    def __init__(
+        self, hass: HomeAssistant, name: str, entry_id: str, entry_title: str
+    ) -> None:
         """Initialize the LLM API."""
         self.hass = hass
         self.id = f"{DOMAIN}-{entry_id}"
         self.name = name
         self._entry_id = entry_id
+        self._entry_title = entry_title
 
     async def async_get_api_instance(self, llm_context: LLMContext) -> APIInstance:
         """Return the instance of the API."""
@@ -142,7 +154,7 @@ class JournalLLMApi(API):
             api=self,
             api_prompt=prompt,
             llm_context=llm_context,
-            tools=[VectorSearchTool(vector_db)],
+            tools=[VectorSearchTool(vector_db, self._entry_title)],
         )
 
 

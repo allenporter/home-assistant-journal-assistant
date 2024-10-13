@@ -23,11 +23,11 @@ from homeassistant.util import dt as dt_util
 
 _LOGGER = logging.getLogger(__name__)
 
-BATCH_SIZE = 10
+INDEX_BATCH_SIZE = 10
 DEFAULT_MAX_RESULTS = 10
 COLLECTION_NAME = "journal_assistant"
 MODEL = "models/text-embedding-004"
-
+EMPTY_QUERY = "task"  # Arbitrary query to use when no query is provided
 
 
 @dataclass(kw_only=True)
@@ -42,8 +42,7 @@ class QueryParams(DataClassJSONMixin):
     def as_query_args(self) -> dict[str, Any]:
         """Return the query arguments for vectordb query."""
         args: dict[str, Any] = {}
-        if self.query is not None:
-            args["query_texts"] = [self.query]
+        args["query_texts"] = [self.query if self.query else EMPTY_QUERY]
         filters: list[dict[str, Any]] = []
         if self.category is not None:
             filters.append({"category": self.category})
@@ -60,7 +59,7 @@ class QueryParams(DataClassJSONMixin):
         if len(filters) > 1:
             args["where"] = {"$and": filters}
         elif len(filters) == 1:
-            args["where"] = filters
+            args["where"] = filters[0]
         args["n_results"] = self.num_results or DEFAULT_MAX_RESULTS
         return args
 
@@ -72,36 +71,37 @@ class QueryParams(DataClassJSONMixin):
 @dataclass
 class IndexableDocument:
     """An indexable document."""
+
     uid: str
     metadata: dict[str, Any]
     document: str
+
 
 def _serialize_content(item: Journal) -> str:
     """Serialize a journal entry."""
     return yaml.dump(item.dict(exclude={"uid", "dtsamp"}, exclude_unset=True, exclude_none=True))  # type: ignore[no-any-return]
 
 
-def create_indexable_document(journal_entry: Journal) -> dict[str, Any]:
+def create_indexable_document(journal_entry: Journal) -> IndexableDocument:
     """Create an indexable document from a journal entry."""
     return IndexableDocument(
         uid=journal_entry.uid or "",
         document=_serialize_content(journal_entry),
         metadata={
-            "category": (
-                next(iter(journal_entry.categories), "")
-            ),
-            "date": dt_util.start_of_local_day(
-                journal_entry.dtstart
-            ).timestamp(),
+            "category": (next(iter(journal_entry.categories), "")),
+            "date": dt_util.start_of_local_day(journal_entry.dtstart).timestamp(),
             "name": journal_entry.summary or "",
-        }
+        },
     )
 
-def indexable_notebooks_iterator(notebooks: dict[str, Calendar], batch_size: int | None = None) -> Generator[list[IndexableDocument]]:
+
+def indexable_notebooks_iterator(
+    notebooks: dict[str, Calendar], batch_size: int | None = None
+) -> Generator[list[IndexableDocument]]:
     """Iterate over notebooks in batches."""
     for calendar in notebooks.values():
         for found_journal_entries in itertools.batched(
-            calendar.journal, batch_size or BATCH_SIZE
+            calendar.journal, batch_size or INDEX_BATCH_SIZE
         ):
             yield [
                 create_indexable_document(journal_entry)
@@ -151,16 +151,16 @@ class VectorDB:
         results = collection.get(ids=ids, include=[IncludeEnum.documents])
         existing_ids = {
             uid: documents
-            for uid, documents in zip(
-                results["ids"], results.get("documents") or []
-            )
+            for uid, documents in zip(results["ids"], results.get("documents") or [])
         }
         if existing_ids:
             _LOGGER.debug("Found %s existing documents", len(existing_ids))
         # Determine which documents entries are entirely new or have updated content
         upsert_documents = []
         for document in documents:
-            if (existing_content := existing_ids.get(document.uid)) is None or document.document != existing_content:
+            if (
+                existing_content := existing_ids.get(document.uid)
+            ) is None or document.document != existing_content:
                 upsert_documents.append(document)
         if not upsert_documents:
             _LOGGER.debug("Skipping batch of unchanged documents")
@@ -184,7 +184,9 @@ class VectorDB:
         collection = self.client.get_collection(
             name=COLLECTION_NAME, embedding_function=self.query_embedding_function  # type: ignore[arg-type]
         )
-        results: chromadb.QueryResult = collection.query(**params.as_query_args())
+        query_args = params.as_query_args()
+        _LOGGER.debug("Querying collection %s with args %s", collection, query_args)
+        results: chromadb.QueryResult = collection.query(**query_args)
         if (
             (id_list := results.get("ids")) is None
             or (metadata_list := results.get("metadatas")) is None
