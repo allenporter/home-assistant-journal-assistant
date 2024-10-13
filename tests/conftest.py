@@ -7,6 +7,7 @@ from pathlib import Path
 import hashlib
 
 import pytest
+from syrupy import SnapshotAssertion
 from syrupy.extensions.amber import AmberSnapshotExtension
 from syrupy.location import PyTestLocation
 
@@ -58,8 +59,9 @@ class DifferentDirectoryExtension(AmberSnapshotExtension):
 
 
 @pytest.fixture
-def snapshot(snapshot):
+def snapshot(snapshot: SnapshotAssertion) -> SnapshotAssertion:
     return snapshot.use_extension(DifferentDirectoryExtension)
+
 
 @pytest.fixture(autouse=True)
 def auto_enable_custom_integrations(

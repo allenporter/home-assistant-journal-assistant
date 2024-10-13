@@ -9,6 +9,7 @@ import tempfile
 import datetime
 
 import chromadb
+import numpy as np
 
 import pytest
 
@@ -44,7 +45,7 @@ class FakeEmbeddingFunction(chromadb.EmbeddingFunction):
         for item in input:
             self.embeds += 1
             result.append(
-                [ord(c) for c in hashlib.sha256(item.encode()).hexdigest()][0:3]
+                np.array([ord(c) for c in hashlib.sha256(item.encode()).hexdigest()][0:3])
             )
         return result
 

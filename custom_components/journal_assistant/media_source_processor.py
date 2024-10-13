@@ -139,7 +139,7 @@ class MediaSourceProcessor:
             self._hass, self.async_process_media, UPDATE_INTERVAL
         )
         if (data := await self._store.async_load()) is not None:
-            self._scan_stats = ScanStats.from_dict(data.get("scan_stats"))
+            self._scan_stats = ScanStats.from_dict(data.get("scan_stats", {}))
 
     @callback
     def async_detach(self) -> None:

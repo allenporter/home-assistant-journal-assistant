@@ -34,14 +34,15 @@ these goals meaningful to us? What tasks are the most relevant to  us at any
 given point in time?
 
 Rapid logging is the language of the bullet journal method and entries may be
-tasks, events, or other observations.  Tasks within the Bullet Journal method
+tasks, events, or other observationsTasks within the Bullet Journal method
 can then fall within any of the logs used depending on where they fall in the
 author's timeline. Typically, journals contain a Daily Log, Weekly Log, a
 Monthly Log.
 
 When the user asks a question, you can call a tool to search their journal and
-use the journal content to inform your response. The individual notes in the
-journal are exposed as entities in the Home Assistant and are listed below.
+use the journal content to inform your response. The individual notebooks within
+the journal are named and exposed as entities in the Home Assistant and are
+listed below.
 """
 NUM_RESULTS = 10
 
@@ -60,32 +61,35 @@ async def async_register_llm_apis(
         _LOGGER.debug("Error registering Journal Assistant LLM APIs: %s", err)
 
 
-def _custom_serializer(obj: object) -> object:
-    """Custom serializer for Journal Assistant objects."""
-    return {"type": "string"}
-
-
 class VectorSearchTool(Tool):
     """Journal Assistant vector search tool."""
 
     name = "search_journal"
-    description = "Perform a free-text vector search on one or more journals journal returning relevant document chunks."
+    description = "Perform a free-text vector search on one or more journals returning relevant document chunks."
     parameters = vol.Schema(
         {
-            "query": vol.Optional(
-                cv.string, description="Query term to search the journal for."
-            ),
-            "notebook_name": vol.Optional(
-                cv.string,
-                description="Optional name of the notebook/journal to search, otherwise searches all notebooks.",
-            ),
-            "date_range": vol.Optional(
+            vol.Optional(
+                "query",
+                description="Free-text query used to search for document chunks across journals.",
+            ): cv.string,
+            vol.Optional(
+                "notebook_name",
+                description="Optional notebook name to restrict search results, otherwise searches all notebooks.",
+            ): cv.string,
+            vol.Optional(
+                "date_range",
+                description="Optional date range to restrict search within (inclusive), in ISO 8601 format.",
+            ): vol.Schema(
                 {
-                    "start": cv.datetime,
-                    "end": cv.datetime,
-                },
-                default=None,
-                description="Optional date range to search within (inclusive).",
+                    vol.Optional(
+                        "start",
+                        description="Only include document chunks on or after this date",
+                    ): cv.datetime,
+                    vol.Optional(
+                        "end",
+                        description="Only include document chunks on or before this date",
+                    ): cv.datetime,
+                }
             ),
         }
     )
@@ -99,15 +103,16 @@ class VectorSearchTool(Tool):
     ) -> JsonObjectType:
         """Call the tool."""
         _LOGGER.debug("Calling search_journal tool with %s", tool_input.tool_args)
+        args = tool_input.tool_args
         query_params = QueryParams(
-            query=tool_input.tool_args.get("query"),
-            category=tool_input.tool_args.get("notebook_name"),
+            query=args.get("query"),
+            category=args.get("notebook_name"),
             num_results=NUM_RESULTS,
         )
-        if tool_input.tool_args.get("date_range"):
+        if args.get("date_range"):
             query_params.date_range = (
-                tool_input.tool_args.get("date_range", {}).get("start"),
-                tool_input.tool_args.get("date_range", {}).get("end"),
+                args.get("date_range", {}).get("start"),
+                args.get("date_range", {}).get("end"),
             )
         results = await hass.async_add_executor_job(self._db.query, query_params)
         _LOGGER.debug("Search results: %s", results)
