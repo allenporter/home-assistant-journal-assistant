@@ -11,7 +11,7 @@ from homeassistant.config_entries import ConfigEntry
 
 from .const import DEFAULT_NOTE_NAME, CONF_NOTES, DOMAIN
 from .processing.journal import journal_from_yaml, write_journal_page_yaml
-from .processing.vectordb import VectorDB
+from .processing.vectordb import VectorDB, indexable_notebooks_iterator
 from .processing.model import JournalPage
 
 _LOGGER = logging.getLogger(__name__)
@@ -66,7 +66,8 @@ def _create_vector_db(
     storage_path: Path, api_key: str, entries: dict[str, Calendar]
 ) -> VectorDB:
     vectordb = VectorDB(storage_path, api_key)
-    vectordb.upsert_index(entries)
+    for document_batch in indexable_notebooks_iterator(entries):
+        vectordb.upsert_index(document_batch)
     return vectordb
 
 

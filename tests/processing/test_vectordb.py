@@ -73,15 +73,14 @@ def test_vectordb_loading(
     assert entries.keys() == {"Daily", "Journal", "Monthly"}
 
     # Add the first entry to the index
-    k_v = next(iter(entries.items()))
-    first_entry = {k_v[0]: k_v[1]}
+    first_calendar = next(iter(entries.values()))
 
     db = vectordb.VectorDB(storage_path, "12345")
-    db.upsert_index(first_entry)
+    db.upsert_index([vectordb.create_indexable_document(entry) for entry in first_calendar.journal])
     assert embedding_function.embeds == 4
 
     # Add the rest, which skips the duplicate
-    db.upsert_index(entries)
+    db.upsert_index([vectordb.create_indexable_document(entry) for calendar in entries.values() for entry in calendar.journal])
     assert embedding_function.embeds == 6
 
     assert db.count() == 6

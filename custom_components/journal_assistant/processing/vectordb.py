@@ -3,6 +3,7 @@
 import itertools
 import logging
 from typing import Any
+from collections.abc import Generator
 from pathlib import Path
 import yaml
 from dataclasses import dataclass
@@ -27,10 +28,6 @@ DEFAULT_MAX_RESULTS = 10
 COLLECTION_NAME = "journal_assistant"
 MODEL = "models/text-embedding-004"
 
-
-def serialize_content(item: Journal) -> str:
-    """Serialize a journal entry."""
-    return yaml.dump(item.dict(exclude={"uid", "dtsamp"}, exclude_unset=True, exclude_none=True))  # type: ignore[no-any-return]
 
 
 @dataclass(kw_only=True)
@@ -72,6 +69,46 @@ class QueryParams(DataClassJSONMixin):
         code_generation_options = ["TO_DICT_ADD_OMIT_NONE_FLAG"]
 
 
+@dataclass
+class IndexableDocument:
+    """An indexable document."""
+    uid: str
+    metadata: dict[str, Any]
+    document: str
+
+def _serialize_content(item: Journal) -> str:
+    """Serialize a journal entry."""
+    return yaml.dump(item.dict(exclude={"uid", "dtsamp"}, exclude_unset=True, exclude_none=True))  # type: ignore[no-any-return]
+
+
+def create_indexable_document(journal_entry: Journal) -> dict[str, Any]:
+    """Create an indexable document from a journal entry."""
+    return IndexableDocument(
+        uid=journal_entry.uid or "",
+        document=_serialize_content(journal_entry),
+        metadata={
+            "category": (
+                next(iter(journal_entry.categories), "")
+            ),
+            "date": dt_util.start_of_local_day(
+                journal_entry.dtstart
+            ).timestamp(),
+            "name": journal_entry.summary or "",
+        }
+    )
+
+def indexable_notebooks_iterator(notebooks: dict[str, Calendar], batch_size: int | None = None) -> Generator[list[IndexableDocument]]:
+    """Iterate over notebooks in batches."""
+    for calendar in notebooks.values():
+        for found_journal_entries in itertools.batched(
+            calendar.journal, batch_size or BATCH_SIZE
+        ):
+            yield [
+                create_indexable_document(journal_entry)
+                for journal_entry in found_journal_entries
+            ]
+
+
 class VectorDB:
     """Journal Assistant vector search database."""
 
@@ -102,71 +139,38 @@ class VectorDB:
         )
         _LOGGER.debug("Creating collection: %s", COLLECTION_NAME)
 
-    def upsert_index(self, notebooks: dict[str, Calendar]) -> None:
+    def upsert_index(self, documents: list[IndexableDocument]) -> None:
         """Add notebooks to the index."""
-        _LOGGER.debug("Adding notebooks to index")
+        _LOGGER.debug("Upserting %d documents in the index", len(documents))
 
         collection = self.client.get_or_create_collection(
             name=COLLECTION_NAME, embedding_function=self.index_embedding_function  # type: ignore[arg-type]
         )
+        ids = [document.uid for document in documents]
 
-        for note_name, calendar in notebooks.items():
-            _LOGGER.debug(
-                "Indexing %s with %s entries", note_name, len(calendar.journal)
+        results = collection.get(ids=ids, include=[IncludeEnum.documents])
+        existing_ids = {
+            uid: documents
+            for uid, documents in zip(
+                results["ids"], results.get("documents") or []
             )
-            for found_journal_entries in itertools.batched(
-                calendar.journal, BATCH_SIZE
-            ):
-                _LOGGER.debug(
-                    "Examining batch of %s to index", len(found_journal_entries)
-                )
-                ids = [
-                    journal_entry.uid or "" for journal_entry in found_journal_entries
-                ]
-                results = collection.get(ids=ids, include=[IncludeEnum.documents])
-                _LOGGER.debug("Results: %s", results)
-                existing_ids = {
-                    uid: documents
-                    for uid, documents in zip(
-                        results["ids"], results.get("documents") or []
-                    )
-                }
-                if existing_ids:
-                    _LOGGER.debug("Found %s existing documents", len(existing_ids))
-                # Determine which journal entries are entirely new or have
-                # updated descriptions
-                journal_entries = []
-                documents = []
-                metadatas = []
-                for journal_entry in found_journal_entries:
-                    existing_content = existing_ids.get(journal_entry.uid)
-                    entry_content = serialize_content(journal_entry)
-                    if existing_content is None or entry_content != existing_content:
-                        journal_entries.append(journal_entry)
-                        documents.append(entry_content)
-                        metadatas.append(
-                            {
-                                "category": (
-                                    journal_entry.categories[0]
-                                    if journal_entry.categories
-                                    else ""
-                                ),
-                                "date": dt_util.start_of_local_day(
-                                    journal_entry.dtstart
-                                ).timestamp(),
-                                "name": journal_entry.summary or "",
-                            }
-                        )
-                ids = [journal_entry.uid or "" for journal_entry in journal_entries]
-                if not ids:
-                    _LOGGER.debug("Skipping batch of unchanged documents")
-                    continue
-                _LOGGER.debug("Upserting batch of %s to index", len(journal_entries))
-                collection.upsert(
-                    documents=documents,
-                    metadatas=metadatas,  # type: ignore[arg-type]
-                    ids=ids,
-                )
+        }
+        if existing_ids:
+            _LOGGER.debug("Found %s existing documents", len(existing_ids))
+        # Determine which documents entries are entirely new or have updated content
+        upsert_documents = []
+        for document in documents:
+            if (existing_content := existing_ids.get(document.uid)) is None or document.document != existing_content:
+                upsert_documents.append(document)
+        if not upsert_documents:
+            _LOGGER.debug("Skipping batch of unchanged documents")
+            return
+        _LOGGER.debug("Upserting batch of %s to index", len(upsert_documents))
+        collection.upsert(
+            documents=[document.document for document in upsert_documents],
+            metadatas=[document.metadata for document in upsert_documents],
+            ids=[document.uid for document in upsert_documents],
+        )
 
     def count(self) -> int:
         """Return the number of documents in the collection."""
