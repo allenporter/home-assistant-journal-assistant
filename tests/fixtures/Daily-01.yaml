@@ -1,167 +1,167 @@
 ---
 filename: Daily-00-P20231220073139675669IR1ax1C4F76D.png
-created_at: '2023-12-20T07:31:39.675669'
+created_at: "2023-12-20T07:31:39.675669"
 label: daily
-date: '2023-12-19'
+date: "2023-12-19"
 records:
-- type: note
-  content: migrate Dec to supernote
-  status: null
-  label: null
-  critical: null
-  date: '2023-12-19'
-  entries: null
-- type: note
-  content: set Plans w/ mom
-  status: null
-  label: null
-  critical: null
-  date: '2023-12-19'
-  entries: null
-- type: task
-  content: call Dad re xmas plan
-  status: migrated
-  label: null
-  critical: null
-  date: '2023-12-19'
-  entries: null
-- type: note
-  content: gifts info to mom & Sam
-  status: null
-  label: null
-  critical: null
-  date: '2023-12-19'
-  entries: null
-- type: note
-  content: prod readiness pass
-  status: null
-  label: null
-  critical: null
-  date: '2023-12-19'
-  entries: null
-- type: task
-  content: xmas tree
-  status: migrated
-  label: null
-  critical: null
-  date: '2023-12-19'
-  entries: null
-- type: note
-  content: 'Dot template: darker 5mm'
-  status: null
-  label: null
-  critical: null
-  date: '2023-12-19'
-  entries: null
-- type: task
-  content: xmas tree
-  status: migrated
-  label: null
-  critical: true
-  date: '2023-12-20'
-  entries: null
-- type: note
-  content: text mom for xmas day
-  status: null
-  label: null
-  critical: null
-  date: '2023-12-20'
-  entries: null
-- type: note
-  content: 'call Dad: xmas plans'
-  status: null
-  label: null
-  critical: null
-  date: '2023-12-20'
-  entries: null
-- type: task
-  content: gifts plan w/ Cathrine
-  status: migrated
-  label: null
-  critical: null
-  date: '2023-12-20'
-  entries: null
-- type: note
-  content: recognition vs old notes
-  status: null
-  label: null
-  critical: null
-  date: '2023-12-20'
-  entries: null
-- type: note
-  content: living room clutter
-  status: null
-  label: null
-  critical: null
-  date: '2023-12-20'
-  entries: null
-- type: note
-  content: okay of the house activity
-  status: null
-  label: null
-  critical: null
-  date: '2023-12-20'
-  entries: null
-- type: task
-  content: super note box clean up
-  status: migrated
-  label: null
-  critical: true
-  date: '2023-12-20'
-  entries: null
-- type: note
-  content: flux-local helm magic
-  status: null
-  label: null
-  critical: null
-  date: '2023-12-20'
-  entries: null
-- type: note
-  content: cardboard breakdown
-  status: null
-  label: null
-  critical: null
-  date: '2023-12-21'
-  entries: null
-- type: event
-  content: Bowling w/ Q
-  status: migrated
-  label: null
-  critical: null
-  date: '2023-12-21'
-  entries: null
-- type: task
-  content: flux-local helm
-  status: completed
-  label: null
-  critical: null
-  date: '2023-12-21'
-  entries: null
-- type: note
-  content: todo urls?
-  status: null
-  label: null
-  critical: null
-  date: '2023-12-21'
-  entries: null
-- type: task
-  content: gifts plan
-  status: migrated
-  label: null
-  critical: true
-  date: '2023-12-21'
-  entries: null
-- type: note
-  content: windows xmas lights
-  status: null
-  label: null
-  critical: null
-  date: '2023-12-21'
-  entries: null
-- type: task
-  content: fitbit python
-  status: migrated
-  label: null
-  critical: null
-  date: '2023-12-21'
-  entries: null
+  - type: note
+    content: migrate Dec to supernote
+    status: completed
+    label: null
+    critical: null
+    date: "2023-12-19"
+    entries: null
+  - type: note
+    content: set Plans w/ mom
+    status: null
+    label: null
+    critical: null
+    date: "2023-12-19"
+    entries: null
+  - type: task
+    content: call Dad re xmas plan
+    status: migrated
+    label: null
+    critical: null
+    date: "2023-12-19"
+    entries: null
+  - type: note
+    content: gifts info to mom & Sam
+    status: null
+    label: null
+    critical: null
+    date: "2023-12-19"
+    entries: null
+  - type: note
+    content: prod readiness pass
+    status: null
+    label: null
+    critical: null
+    date: "2023-12-19"
+    entries: null
+  - type: task
+    content: xmas tree
+    status: migrated
+    label: null
+    critical: null
+    date: "2023-12-19"
+    entries: null
+  - type: note
+    content: "Dot template: darker 5mm"
+    status: null
+    label: null
+    critical: null
+    date: "2023-12-19"
+    entries: null
+  - type: task
+    content: xmas tree
+    status: migrated
+    label: null
+    critical: true
+    date: "2023-12-20"
+    entries: null
+  - type: note
+    content: text mom for xmas day
+    status: null
+    label: null
+    critical: null
+    date: "2023-12-20"
+    entries: null
+  - type: note
+    content: "call Dad: xmas plans"
+    status: null
+    label: null
+    critical: null
+    date: "2023-12-20"
+    entries: null
+  - type: task
+    content: gifts plan w/ Cathrine
+    status: migrated
+    label: null
+    critical: null
+    date: "2023-12-20"
+    entries: null
+  - type: note
+    content: recognition vs old notes
+    status: null
+    label: null
+    critical: null
+    date: "2023-12-20"
+    entries: null
+  - type: note
+    content: living room clutter
+    status: null
+    label: null
+    critical: null
+    date: "2023-12-20"
+    entries: null
+  - type: note
+    content: okay of the house activity
+    status: null
+    label: null
+    critical: null
+    date: "2023-12-20"
+    entries: null
+  - type: task
+    content: super note box clean up
+    status: migrated
+    label: null
+    critical: true
+    date: "2023-12-20"
+    entries: null
+  - type: note
+    content: flux-local helm magic
+    status: null
+    label: null
+    critical: null
+    date: "2023-12-20"
+    entries: null
+  - type: note
+    content: cardboard breakdown
+    status: null
+    label: null
+    critical: null
+    date: "2023-12-21"
+    entries: null
+  - type: event
+    content: Bowling w/ Q
+    status: migrated
+    label: null
+    critical: null
+    date: "2023-12-21"
+    entries: null
+  - type: task
+    content: flux-local helm
+    status: completed
+    label: null
+    critical: null
+    date: "2023-12-21"
+    entries: null
+  - type: note
+    content: todo urls?
+    status: null
+    label: null
+    critical: null
+    date: "2023-12-21"
+    entries: null
+  - type: task
+    content: gifts plan
+    status: migrated
+    label: null
+    critical: true
+    date: "2023-12-21"
+    entries: null
+  - type: note
+    content: windows xmas lights
+    status: null
+    label: null
+    critical: null
+    date: "2023-12-21"
+    entries: null
+  - type: task
+    content: fitbit python
+    status: migrated
+    label: null
+    critical: null
+    date: "2023-12-21"
+    entries: null

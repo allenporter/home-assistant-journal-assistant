@@ -41,7 +41,11 @@ def get_dated_content(page: JournalPage) -> dict[str, list[str]]:
         note_date = note.date or default_date
         if note_date not in dated_content:
             dated_content[note_date] = []
-        dated_content[note_date].append(f"- {note.content}")
+        if note.status:
+            content = f"- ({note.status}) {note.content}"
+        else:
+            content = f"- {note.content}"
+        dated_content[note_date].append(content)
     return dated_content
 
 

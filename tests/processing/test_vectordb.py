@@ -76,11 +76,19 @@ def test_vectordb_loading(
     first_calendar = next(iter(entries.values()))
 
     db = vectordb.VectorDB(storage_path, "12345")
-    db.upsert_index([vectordb.create_indexable_document(entry) for entry in first_calendar.journal])
+    db.upsert_index(
+        [vectordb.create_indexable_document(entry) for entry in first_calendar.journal]
+    )
     assert embedding_function.embeds == 4
 
     # Add the rest, which skips the duplicate
-    db.upsert_index([vectordb.create_indexable_document(entry) for calendar in entries.values() for entry in calendar.journal])
+    db.upsert_index(
+        [
+            vectordb.create_indexable_document(entry)
+            for calendar in entries.values()
+            for entry in calendar.journal
+        ]
+    )
     assert embedding_function.embeds == 6
 
     assert db.count() == 6
@@ -94,17 +102,11 @@ def test_vectordb_loading(
         == """categories:
 - Daily
 description: '- migrate Dec to supernote
-
   - set Plans w/ mom
-
-  - call Dad re xmas plan
-
+  - (migrated) call Dad re xmas plan
   - gifts info to mom & Sam
-
   - prod readiness pass
-
   - xmas tree
-
   - Dot template: darker 5mm'
 dtstart: 2023-12-19
 summary: Daily 2023-12-19

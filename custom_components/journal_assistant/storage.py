@@ -65,7 +65,9 @@ async def save_journal_entry(
 def _create_vector_db(
     storage_path: Path, api_key: str, entries: dict[str, Calendar]
 ) -> VectorDB:
+    _LOGGER.debug("Creating VectorDB")
     vectordb = VectorDB(storage_path, api_key)
+    _LOGGER.debug("Upserting document index")
     for document_batch in indexable_notebooks_iterator(entries):
         vectordb.upsert_index(document_batch)
     return vectordb

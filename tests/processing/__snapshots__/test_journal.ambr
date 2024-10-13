@@ -1,0 +1,89 @@
+# serializer version: 1
+# name: test_parse_journal_as_calendar
+  list([
+    dict({
+      'categories': list([
+        'Daily',
+      ]),
+      'description': '''
+        - (completed) migrate Dec to supernote
+        - set Plans w/ mom
+        - (migrated) call Dad re xmas plan
+        - gifts info to mom & Sam
+        - prod readiness pass
+        - (migrated) xmas tree
+        - Dot template: darker 5mm
+      ''',
+      'dtstart': datetime.date(2023, 12, 19),
+      'summary': 'Daily 2023-12-19',
+    }),
+    dict({
+      'categories': list([
+        'Daily',
+      ]),
+      'description': '''
+        - (migrated) xmas tree
+        - text mom for xmas day
+        - call Dad: xmas plans
+        - (migrated) gifts plan w/ Cathrine
+        - recognition vs old notes
+        - living room clutter
+        - okay of the house activity
+        - (migrated) super note box clean up
+        - flux-local helm magic
+      ''',
+      'dtstart': datetime.date(2023, 12, 20),
+      'summary': 'Daily 2023-12-20',
+    }),
+    dict({
+      'categories': list([
+        'Daily',
+      ]),
+      'description': '''
+        - cardboard breakdown
+        - (migrated) Bowling w/ Q
+        - (completed) flux-local helm
+        - todo urls?
+        - (migrated) gifts plan
+        - windows xmas lights
+        - (migrated) fitbit python
+      ''',
+      'dtstart': datetime.date(2023, 12, 21),
+      'summary': 'Daily 2023-12-21',
+    }),
+    dict({
+      'categories': list([
+        'Daily',
+      ]),
+      'description': '- clean garage',
+      'dtstart': datetime.date(2023, 12, 22),
+      'summary': 'Daily 2023-12-22',
+    }),
+    dict({
+      'categories': list([
+        'Journal',
+        'Homelab',
+      ]),
+      'description': '''
+        X Cluster Rebuild
+        X external dns config
+        X kairos image
+        X adguard on campus
+      ''',
+      'dtstart': datetime.datetime(2023, 12, 23, 17, 18, 11, 138118),
+      'summary': 'Homelab 2023-12-23T17:18:11.138118',
+    }),
+    dict({
+      'categories': list([
+        'Monthly',
+      ]),
+      'description': '''
+        - How am I doing on my objectives and relationships?
+        - Continuing to read papers and other development objectives
+        - Had good quality time with family
+      ''',
+      'dtstart': datetime.date(2024, 4, 1),
+      'summary': 'Monthly 2024-04-01',
+    }),
+  ])
+# ---

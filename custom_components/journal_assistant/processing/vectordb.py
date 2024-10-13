@@ -23,7 +23,7 @@ from homeassistant.util import dt as dt_util
 
 _LOGGER = logging.getLogger(__name__)
 
-INDEX_BATCH_SIZE = 10
+INDEX_BATCH_SIZE = 25
 DEFAULT_MAX_RESULTS = 10
 COLLECTION_NAME = "journal_assistant"
 MODEL = "models/text-embedding-004"
@@ -99,10 +99,14 @@ def indexable_notebooks_iterator(
     notebooks: dict[str, Calendar], batch_size: int | None = None
 ) -> Generator[list[IndexableDocument]]:
     """Iterate over notebooks in batches."""
+    total = sum(len(calendar.journal) for calendar in notebooks.values())
+    count = 0
     for calendar in notebooks.values():
         for found_journal_entries in itertools.batched(
             calendar.journal, batch_size or INDEX_BATCH_SIZE
         ):
+            count += len(found_journal_entries)
+            _LOGGER.debug("Processing batch %s of %s", count, total)
             yield [
                 create_indexable_document(journal_entry)
                 for journal_entry in found_journal_entries
