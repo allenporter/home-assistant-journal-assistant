@@ -18,7 +18,8 @@ from custom_components.journal_assistant.const import (
     CONF_CHROMADB_TENANT,
 )
 
-@freeze_time("2021-01-01 12:00:00")   # For fixed tenant id
+
+@freeze_time("2021-01-01 12:00:00")  # For fixed tenant id
 async def test_config_flow(hass: HomeAssistant) -> None:
     """Test selecting a device in the configuration flow."""
     result = await hass.config_entries.flow.async_init(
@@ -27,8 +28,7 @@ async def test_config_flow(hass: HomeAssistant) -> None:
     assert result.get("type") is FlowResultType.FORM
     assert result.get("errors") is None
 
-
-    with patch(f"custom_components.{DOMAIN}.config_flow.create_tenant") as mock_tenant, patch(
+    with patch(f"custom_components.{DOMAIN}.config_flow.create_tenant"), patch(
         f"custom_components.{DOMAIN}.async_setup_entry", return_value=True
     ) as mock_setup:
         result = await hass.config_entries.flow.async_configure(
