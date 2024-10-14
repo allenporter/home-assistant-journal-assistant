@@ -108,7 +108,7 @@ def async_register_services(hass: HomeAssistant) -> None:
             journal_page = await vision_model.process_journal_page(
                 pathlib.Path(browse.title), content
             )
-        except ValueError as err:
+        except (ValueError, AttributeError) as err:
             _LOGGER.error("Error processing journal content: %s", err)
             raise ServiceValidationError(
                 translation_domain=DOMAIN,
