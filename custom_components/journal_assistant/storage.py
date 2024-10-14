@@ -24,7 +24,6 @@ from .processing.vectordb import (
     VectorDB,
     indexable_notebooks_iterator,
     create_chromadb_client,
-    create_chromadb_settings,
 )
 from .processing.model import JournalPage
 
@@ -84,9 +83,8 @@ def _create_vector_db(
     entries: dict[str, Calendar],
 ) -> VectorDB:
     _LOGGER.debug("Creating VectorDB")
-    settings = create_chromadb_settings(chromadb_url)
     try:
-        client = create_chromadb_client(settings, tenant)
+        client = create_chromadb_client(chromadb_url, tenant)
     except ChromaError as err:
         _LOGGER.error("Error creating ChromaDB client: %s", err)
         raise HomeAssistantError(f"Error creating ChromaDB client: {err}") from err

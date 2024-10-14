@@ -114,41 +114,43 @@ def indexable_notebooks_iterator(
             ]
 
 
-def create_chromadb_settings(chromadb_url: str) -> Settings:
-    """Create ChromaDB settings."""
-    _LOGGER.info("Creating settings for ChromaDB: %s", chromadb_url)
+def create_chromadb_client(chromadb_url: str, tenant: str) -> chromadb.api.ClientAPI:
+    """Create a ChromaDB client."""
+    _LOGGER.debug("Creating ChromaDB client for tenant: %s", tenant)
     url = urlparse(chromadb_url)
     port = 80
     if url.port:
         port = url.port
     elif url.scheme == "https":
         port = 443
-    return Settings(
-        chroma_api_impl="chromadb.api.fastapi.FastAPI",
-        chroma_server_host=url.hostname,
-        chroma_server_http_port=url.port,
-        chroma_server_ssl_enabled=(url.scheme == "https"),
-        anonymized_telemetry=False,
-    )
-
-
-def create_chromadb_client(settings: Settings, tenant: str) -> chromadb.api.ClientAPI:
-    """Create a ChromaDB client."""
-    _LOGGER.debug("Creating ChromaDB client for tenant: %s (settings=%s)", tenant, settings)
-    settings.tenant_id = tenant
     return chromadb.HttpClient(
-        settings=settings,
-        host=settings.chroma_server_host,
-        port=settings.chroma_server_http_port,
-        ssl=settings.chroma_server_ssl_enabled,
+        settings=Settings(
+            anonymized_telemetry=False,
+        ),
+        host=url.hostname or "",
+        port=port,
+        ssl=(url.scheme == "https"),
         tenant=tenant,
         database=DEFAULT_DATABASE,
     )
 
-def create_tenant(settings: Settings, tenant: str) -> None:
+
+def create_tenant(chromadb_url: str, tenant: str) -> None:
     """Get or create a tenant."""
+    url = urlparse(chromadb_url)
+    port = 80
+    if url.port:
+        port = url.port
+    elif url.scheme == "https":
+        port = 443
+    settings = Settings(
+        chroma_api_impl="chromadb.api.fastapi.FastAPI",
+        chroma_server_host=url.hostname,
+        chroma_server_http_port=port,
+        chroma_server_ssl_enabled=(url.scheme == "https"),
+        anonymized_telemetry=False,
+    )
     _LOGGER.debug("Creating tenant: %s", tenant)
-    _LOGGER.debug("ChromaDB settings: %s", settings)
     admin_client = chromadb.AdminClient(settings=settings)
     admin_client.create_tenant(tenant)
     admin_client.create_database(DEFAULT_DATABASE, tenant)
@@ -165,8 +167,6 @@ def create_local_chroma_client(storage_path: Path) -> chromadb.api.ClientAPI:
         tenant=DEFAULT_TENANT,
         database=DEFAULT_DATABASE,
     )
-
-
 
 
 class VectorDB:
@@ -206,7 +206,7 @@ class VectorDB:
         """Add notebooks to the index."""
         _LOGGER.debug("Upserting %d documents in the index", len(documents))
 
-        collection = self.client._index_collection()
+        collection = self._index_collection()
         ids = [document.uid for document in documents]
 
         results = collection.get(ids=ids, include=[IncludeEnum.documents])

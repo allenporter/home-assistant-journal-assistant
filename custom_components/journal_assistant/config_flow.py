@@ -18,12 +18,9 @@ from homeassistant.helpers.schema_config_entry_flow import (
     SchemaConfigFlowHandler,
     SchemaFlowFormStep,
     SchemaFlowError,
+    SchemaCommonFlowHandler,
 )
 from .processing.vectordb import (
-    VectorDB,
-    indexable_notebooks_iterator,
-    create_chromadb_client,
-    create_chromadb_settings,
     create_tenant,
 )
 from .const import (
@@ -33,7 +30,7 @@ from .const import (
     CONF_API_KEY,
     CONF_MEDIA_SOURCE,
     CONF_CHROMADB_URL,
-    CONF_CHROMADB_TENANT
+    CONF_CHROMADB_TENANT,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -46,12 +43,13 @@ async def validate_user_input(
     handler.parent_handler._async_abort_entries_match(  # noqa: SLF001
         {CONF_NAME: user_input[CONF_NAME]}
     )
-    settings = create_chromadb_settings(user_input[CONF_CHROMADB_URL])
     tenant = f"{user_input[CONF_NAME]}-{int(time.time())}"
     _LOGGER.debug("Creating new tenant %s", tenant)
     hass = handler.parent_handler.hass
     try:
-        await hass.async_add_executor_job(create_tenant, settings, tenant)
+        await hass.async_add_executor_job(
+            create_tenant, user_input[CONF_CHROMADB_URL], tenant
+        )
     except Exception as err:
         _LOGGER.error("Chromadb creating tenant %s", err)
         raise SchemaFlowError("api_error") from err
