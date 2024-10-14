@@ -36,6 +36,8 @@ from custom_components.journal_assistant.const import (
     CONF_NOTES,
     CONF_API_KEY,
     CONF_MEDIA_SOURCE,
+    CONF_CHROMADB_URL,
+    CONF_CHROMADB_TENANT,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -91,7 +93,7 @@ def mock_journal_storage_path() -> Generator[Path, None, None]:
 @pytest.fixture(name="mock_vectordb")
 def mock_vectordb() -> Generator[Mock, None, None]:
     """Fixture to mock the VectorDB system."""
-    with patch(
+    with patch(f"custom_components.{DOMAIN}.storage.create_chromadb_client"), patch(
         f"custom_components.{DOMAIN}.storage.VectorDB",
     ) as mock_vectordb:
         mock_vectordb.return_value.query.return_value = [
@@ -117,6 +119,8 @@ async def mock_config_entry(
             CONF_NOTES: "Daily\nWeekly\nMonthly",
             CONF_API_KEY: "12345",
             CONF_MEDIA_SOURCE: MEDIA_SOURCE_PREFIX,
+            CONF_CHROMADB_URL: "http://localhost:8080",
+            CONF_CHROMADB_TENANT: "My Journal-1609502400",
         },
         title="My Journal",
     )

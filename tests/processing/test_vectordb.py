@@ -76,8 +76,8 @@ def test_vectordb_loading(
 
     # Add the first entry to the index
     first_calendar = next(iter(entries.values()))
-
-    db = vectordb.VectorDB(storage_path, "12345")
+    client = vectordb.create_local_chroma_client(storage_path)
+    db = vectordb.VectorDB(client, "12345")
     db.upsert_index(
         [vectordb.create_indexable_document(entry) for entry in first_calendar.journal]
     )

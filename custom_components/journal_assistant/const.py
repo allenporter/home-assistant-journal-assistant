@@ -6,6 +6,8 @@ VISION_MODEL_NAME = "gemini-1.5-flash"
 CONF_API_KEY = "api_key"
 CONF_MEDIA_SOURCE = "media_source"
 CONF_NOTES = "notes"
+CONF_CHROMADB_URL = "chromadb_url"
+CONF_CHROMADB_TENANT = "tenant"
 DEFAULT_NOTES = [
     "Daily",
     "Weekly",

@@ -69,6 +69,7 @@ See https://github.com/allenporter/supernote-llm
   - [x] support deleting documents and removing from index
   - [ ] support more google models in config flow
   - [ ] support alternative embedding models
+  - [ ] delete tenant on integration removal
 - [x] support reload of config entries
 - [x] support removing config entries, cleaning up database
 - [x] make vetordb indexing asynchronous

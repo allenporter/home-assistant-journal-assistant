@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+import time
 from collections.abc import Mapping
 from typing import Any, cast
 
@@ -15,15 +17,48 @@ from homeassistant.helpers import (
 from homeassistant.helpers.schema_config_entry_flow import (
     SchemaConfigFlowHandler,
     SchemaFlowFormStep,
+    SchemaFlowError,
 )
-
+from .processing.vectordb import (
+    VectorDB,
+    indexable_notebooks_iterator,
+    create_chromadb_client,
+    create_chromadb_settings,
+    create_tenant,
+)
 from .const import (
     DOMAIN,
     CONF_NOTES,
     DEFAULT_NOTES,
     CONF_API_KEY,
     CONF_MEDIA_SOURCE,
+    CONF_CHROMADB_URL,
+    CONF_CHROMADB_TENANT
 )
+
+_LOGGER = logging.getLogger(__name__)
+
+
+async def validate_user_input(
+    handler: SchemaCommonFlowHandler, user_input: dict[str, Any]
+) -> dict[str, Any]:
+    """Validate user input."""
+    handler.parent_handler._async_abort_entries_match(  # noqa: SLF001
+        {CONF_NAME: user_input[CONF_NAME]}
+    )
+    settings = create_chromadb_settings(user_input[CONF_CHROMADB_URL])
+    tenant = f"{user_input[CONF_NAME]}-{int(time.time())}"
+    _LOGGER.debug("Creating new tenant %s", tenant)
+    hass = handler.parent_handler.hass
+    try:
+        await hass.async_add_executor_job(create_tenant, settings, tenant)
+    except Exception as err:
+        _LOGGER.error("Chromadb creating tenant %s", err)
+        raise SchemaFlowError("api_error") from err
+    return {
+        **user_input,
+        CONF_CHROMADB_TENANT: tenant,
+    }
 
 
 CONFIG_FLOW = {
@@ -31,13 +66,17 @@ CONFIG_FLOW = {
         vol.Schema(
             {
                 vol.Required(CONF_NAME): cv.string,
+                vol.Required(CONF_CHROMADB_URL): cv.string,
                 vol.Required(CONF_API_KEY): cv.string,
-                vol.Required(CONF_MEDIA_SOURCE): selector.TextSelector(selector.TextSelectorConfig(multiline=False)),
+                vol.Required(CONF_MEDIA_SOURCE): selector.TextSelector(
+                    selector.TextSelectorConfig(multiline=False)
+                ),
                 vol.Required(
                     CONF_NOTES, default="\n".join(DEFAULT_NOTES)
                 ): selector.TextSelector(selector.TextSelectorConfig(multiline=True)),
             }
-        )
+        ),
+        validate_user_input=validate_user_input,
     )
 }
 

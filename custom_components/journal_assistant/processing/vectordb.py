@@ -8,6 +8,7 @@ from pathlib import Path
 import yaml
 from dataclasses import dataclass
 import datetime
+from urllib.parse import urlparse
 
 import chromadb
 from chromadb.api.types import IncludeEnum
@@ -113,16 +114,68 @@ def indexable_notebooks_iterator(
             ]
 
 
+def create_chromadb_settings(chromadb_url: str) -> Settings:
+    """Create ChromaDB settings."""
+    _LOGGER.info("Creating settings for ChromaDB: %s", chromadb_url)
+    url = urlparse(chromadb_url)
+    port = 80
+    if url.port:
+        port = url.port
+    elif url.scheme == "https":
+        port = 443
+    return Settings(
+        chroma_api_impl="chromadb.api.fastapi.FastAPI",
+        chroma_server_host=url.hostname,
+        chroma_server_http_port=url.port,
+        chroma_server_ssl_enabled=(url.scheme == "https"),
+        anonymized_telemetry=False,
+    )
+
+
+def create_chromadb_client(settings: Settings, tenant: str) -> chromadb.api.ClientAPI:
+    """Create a ChromaDB client."""
+    _LOGGER.debug("Creating ChromaDB client for tenant: %s (settings=%s)", tenant, settings)
+    settings.tenant_id = tenant
+    return chromadb.HttpClient(
+        settings=settings,
+        host=settings.chroma_server_host,
+        port=settings.chroma_server_http_port,
+        ssl=settings.chroma_server_ssl_enabled,
+        tenant=tenant,
+        database=DEFAULT_DATABASE,
+    )
+
+def create_tenant(settings: Settings, tenant: str) -> None:
+    """Get or create a tenant."""
+    _LOGGER.debug("Creating tenant: %s", tenant)
+    _LOGGER.debug("ChromaDB settings: %s", settings)
+    admin_client = chromadb.AdminClient(settings=settings)
+    admin_client.create_tenant(tenant)
+    admin_client.create_database(DEFAULT_DATABASE, tenant)
+    _LOGGER.debug("Tenant created: %s", tenant)
+
+
+def create_local_chroma_client(storage_path: Path) -> chromadb.api.ClientAPI:
+    """Create a ChromaDB client."""
+    return chromadb.PersistentClient(
+        path=str(storage_path),
+        settings=Settings(
+            anonymized_telemetry=False,
+        ),
+        tenant=DEFAULT_TENANT,
+        database=DEFAULT_DATABASE,
+    )
+
+
+
+
 class VectorDB:
     """Journal Assistant vector search database."""
 
-    def __init__(self, storage_path: Path, google_api_key: str) -> None:
+    def __init__(self, client: chromadb.api.ClientAPI, google_api_key: str) -> None:
         """Initialize the vector database."""
         _LOGGER.debug("Creating ChromaDB System")
-        settings = Settings(
-            anonymized_telemetry=False,
-        )
-        self.system = chromadb.config.System(settings)
+        self.client = client
         _LOGGER.debug("Creating Google embedding function")
         # Separate embedding functions are used for idnexing vs querying
         self.index_embedding_function = (
@@ -135,21 +188,25 @@ class VectorDB:
                 api_key=google_api_key, model_name=MODEL, task_type="RETRIEVAL_QUERY"
             )
         )
-        self.client = chromadb.PersistentClient(
-            path=str(storage_path),
-            settings=settings,
-            tenant=DEFAULT_TENANT,
-            database=DEFAULT_DATABASE,
-        )
         _LOGGER.debug("Creating collection: %s", COLLECTION_NAME)
+
+    def _query_collection(self) -> chromadb.Collection:
+        """Get the collection for the VectorDB."""
+        return self.client.get_or_create_collection(
+            name=COLLECTION_NAME, embedding_function=self.query_embedding_function  # type: ignore[arg-type]
+        )
+
+    def _index_collection(self) -> chromadb.Collection:
+        """Get the collection for the VectorDB."""
+        return self.client.get_or_create_collection(
+            name=COLLECTION_NAME, embedding_function=self.index_embedding_function  # type: ignore[arg-type]
+        )
 
     def upsert_index(self, documents: list[IndexableDocument]) -> None:
         """Add notebooks to the index."""
         _LOGGER.debug("Upserting %d documents in the index", len(documents))
 
-        collection = self.client.get_or_create_collection(
-            name=COLLECTION_NAME, embedding_function=self.index_embedding_function  # type: ignore[arg-type]
-        )
+        collection = self.client._index_collection()
         ids = [document.uid for document in documents]
 
         results = collection.get(ids=ids, include=[IncludeEnum.documents])
@@ -178,16 +235,12 @@ class VectorDB:
 
     def count(self) -> int:
         """Return the number of documents in the collection."""
-        collection = self.client.get_collection(
-            name=COLLECTION_NAME, embedding_function=self.query_embedding_function  # type: ignore[arg-type]
-        )
+        collection = self._query_collection()
         return collection.count()
 
     def query(self, params: QueryParams) -> list[dict[str, Any]]:
         """Search the VectorDB for relevant documents."""
-        collection = self.client.get_collection(
-            name=COLLECTION_NAME, embedding_function=self.query_embedding_function  # type: ignore[arg-type]
-        )
+        collection = self._query_collection()
         query_args = params.as_query_args()
         _LOGGER.debug("Querying collection %s with args %s", collection, query_args)
         results: chromadb.QueryResult = collection.query(**query_args)

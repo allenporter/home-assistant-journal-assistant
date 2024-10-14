@@ -11,6 +11,9 @@
           "notes": "Notes"
         }
       }
+    },
+    "error": {
+      "api_error": "Error talking to ChromaDB API."
     }
   },
   "services": {
@@ -31,6 +34,7 @@
     }
   },
   "exceptions": {
+
     "integration_not_found": {
       "message": "Integration \"{target}\" not found in registry."
     },

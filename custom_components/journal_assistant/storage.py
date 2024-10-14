@@ -5,14 +5,29 @@ import logging
 from typing import cast
 
 from ical.calendar import Calendar
+from chromadb.errors import ChromaError
 
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.config_entries import ConfigEntry
 
-from .const import DEFAULT_NOTE_NAME, CONF_NOTES, DOMAIN
+from .const import (
+    DEFAULT_NOTE_NAME,
+    CONF_NOTES,
+    DOMAIN,
+    CONF_CHROMADB_URL,
+    CONF_API_KEY,
+    CONF_CHROMADB_TENANT,
+)
 from .processing.journal import journal_from_yaml, write_journal_page_yaml
-from .processing.vectordb import VectorDB, indexable_notebooks_iterator
+from .processing.vectordb import (
+    VectorDB,
+    indexable_notebooks_iterator,
+    create_chromadb_client,
+    create_chromadb_settings,
+)
 from .processing.model import JournalPage
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -63,10 +78,19 @@ async def save_journal_entry(
 
 
 def _create_vector_db(
-    storage_path: Path, api_key: str, entries: dict[str, Calendar]
+    chromadb_url: str,
+    tenant: str,
+    api_key: str,
+    entries: dict[str, Calendar],
 ) -> VectorDB:
     _LOGGER.debug("Creating VectorDB")
-    vectordb = VectorDB(storage_path, api_key)
+    settings = create_chromadb_settings(chromadb_url)
+    try:
+        client = create_chromadb_client(settings, tenant)
+    except ChromaError as err:
+        _LOGGER.error("Error creating ChromaDB client: %s", err)
+        raise HomeAssistantError(f"Error creating ChromaDB client: {err}") from err
+    vectordb = VectorDB(client, api_key)
     _LOGGER.debug("Upserting document index")
     for document_batch in indexable_notebooks_iterator(entries):
         vectordb.upsert_index(document_batch)
@@ -78,8 +102,9 @@ async def create_vector_db(hass: HomeAssistant, entry: ConfigEntry) -> VectorDB:
     entries = await load_journal_entries(hass, entry)
     vectordb = await hass.async_add_executor_job(
         _create_vector_db,
-        vectordb_storage_path(hass, entry.entry_id),
-        entry.options["api_key"],
+        entry.options[CONF_CHROMADB_URL],
+        entry.options[CONF_CHROMADB_TENANT],
+        entry.options[CONF_API_KEY],
         entries,
     )
     return cast(VectorDB, vectordb)
