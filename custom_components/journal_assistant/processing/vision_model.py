@@ -89,7 +89,11 @@ class VisionModel:
             ]
         )
 
-        yaml_content = _parse_model_response(response.text)
+        try:
+            text = response.text
+        except AttributeError as err:
+            raise ValueError("AttributeError with response.text") from err
+        yaml_content = _parse_model_response(text)
         try:
             return JournalPage.from_yaml(yaml_content)
         except MissingField as err:
