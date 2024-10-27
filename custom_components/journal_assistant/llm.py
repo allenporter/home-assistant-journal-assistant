@@ -1,5 +1,6 @@
 """LLM APIs for Journal Assistant."""
 
+import datetime
 import logging
 
 import yaml
@@ -86,11 +87,11 @@ class VectorSearchTool(Tool):
                     vol.Optional(
                         "start",
                         description="Only include document chunks on or after this date",
-                    ): cv.datetime,
+                    ): cv.date,
                     vol.Optional(
                         "end",
                         description="Only include document chunks on or before this date",
-                    ): cv.datetime,
+                    ): cv.date,
                 }
             ),
         }
@@ -119,10 +120,17 @@ class VectorSearchTool(Tool):
         ):
             query_params.category = query_params.category[len(self._entry_title) + 1 :]
         if args.get("date_range"):
-            query_params.date_range = (
-                args.get("date_range", {}).get("start"),
-                args.get("date_range", {}).get("end"),
-            )
+            start_date: datetime.date | None = None
+            end_date: datetime.date | None = None
+            if args["date_range"].get("start"):
+                start_date = args["date_range"]["start"]
+                if not isinstance(start_date, datetime.date):
+                    raise ValueError("Invalid start date")
+            if args["date_range"].get("end"):
+                end_date = args["date_range"]["end"]
+                if not isinstance(end_date, datetime.date):
+                    raise ValueError("Invalid end date")
+            query_params.date_range = (start_date, end_date)
         results = await hass.async_add_executor_job(self._db.query, query_params)
         _LOGGER.debug("Search results: %s", results)
         return {
