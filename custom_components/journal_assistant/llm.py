@@ -107,7 +107,7 @@ class VectorSearchTool(Tool):
     ) -> JsonObjectType:
         """Call the tool."""
         _LOGGER.debug("Calling search_journal tool with %s", tool_input.tool_args)
-        args = tool_input.tool_args
+        args = self.parameters(tool_input.tool_args)
         query_params = QueryParams(
             query=args.get("query"),
             category=args.get("notebook_name"),
@@ -125,11 +125,11 @@ class VectorSearchTool(Tool):
             if args["date_range"].get("start"):
                 start_date = args["date_range"]["start"]
                 if isinstance(start_date, str):
-                    start_date = datetime.date.isoformat(start_date)
+                    start_date = datetime.date.fromisoformat(start_date)
             if args["date_range"].get("end"):
                 end_date = args["date_range"]["end"]
                 if isinstance(end_date, str):
-                    end_date = datetime.date.isoformat(end_date)
+                    end_date = datetime.date.fromisoformat(end_date)
             query_params.date_range = (start_date, end_date)
         results = await hass.async_add_executor_job(self._db.query, query_params)
         _LOGGER.debug("Search results: %s", results)
