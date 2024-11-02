@@ -2,7 +2,6 @@
 
 from pathlib import Path
 import logging
-from typing import cast
 
 from ical.calendar import Calendar
 from chromadb.errors import ChromaError
