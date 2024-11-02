@@ -125,11 +125,11 @@ class VectorSearchTool(Tool):
             if args["date_range"].get("start"):
                 start_date = args["date_range"]["start"]
                 if isinstance(start_date, str):
-                    start_date = datetime.date.fromisoformat(start_date)
+                    start_date = datetime.date.fromisoformat(start_date)  # type: ignore[unreachable]
             if args["date_range"].get("end"):
                 end_date = args["date_range"]["end"]
                 if isinstance(end_date, str):
-                    end_date = datetime.date.fromisoformat(end_date)
+                    end_date = datetime.date.fromisoformat(end_date)  # type: ignore[unreachable]
             query_params.date_range = (start_date, end_date)
         results = await hass.async_add_executor_job(self._db.query, query_params)
         _LOGGER.debug("Search results: %s", results)
