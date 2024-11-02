@@ -53,13 +53,12 @@ def vectordb_storage_path(hass: HomeAssistant, config_entry_id: str) -> Path:
 async def load_journal_entries(
     hass: HomeAssistant, entry: ConfigEntry
 ) -> dict[str, Calendar]:
-    result = await hass.async_add_executor_job(
+    return await hass.async_add_executor_job(  # type: ignore[no-any-return]
         journal_from_yaml,
         journal_storage_path(hass, entry.entry_id),
         set(entry.options[CONF_NOTES].split("\n")),
         DEFAULT_NOTE_NAME,
     )
-    return cast(dict[str, Calendar], result)
 
 
 async def save_journal_entry(
@@ -98,11 +97,10 @@ def _create_vector_db(
 async def create_vector_db(hass: HomeAssistant, entry: ConfigEntry) -> VectorDB:
     """Create a VectorDB instance."""
     entries = await load_journal_entries(hass, entry)
-    vectordb = await hass.async_add_executor_job(
+    return await hass.async_add_executor_job(  # type: ignore[no-any-return]
         _create_vector_db,
         entry.options[CONF_CHROMADB_URL],
         entry.options[CONF_CHROMADB_TENANT],
         entry.options[CONF_API_KEY],
         entries,
     )
-    return cast(VectorDB, vectordb)

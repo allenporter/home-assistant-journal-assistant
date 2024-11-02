@@ -184,7 +184,7 @@ class MediaSourceProcessor:
                 scan_stats.errors += 1
                 continue
             _LOGGER.debug("Media has %s children", len(browse.children))
-            for child in browse.children:
+            for child in browse.children or ():
                 child_identifier = f"{URI_SCHEME}{child.domain}/{child.identifier}"
                 if child.can_expand:
                     scan_stats.scanned_folders += 1

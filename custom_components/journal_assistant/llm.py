@@ -2,6 +2,7 @@
 
 import datetime
 import logging
+from typing import cast
 
 import yaml
 import voluptuous as vol
@@ -133,10 +134,10 @@ class VectorSearchTool(Tool):
             query_params.date_range = (start_date, end_date)
         results = await hass.async_add_executor_job(self._db.query, query_params)
         _LOGGER.debug("Search results: %s", results)
-        return {
+        return cast(JsonObjectType, {
             "query": query_params.to_dict(omit_none=True),
             "results": results,
-        }
+        })
 
 
 class JournalLLMApi(API):
@@ -154,7 +155,7 @@ class JournalLLMApi(API):
 
     async def async_get_api_instance(self, llm_context: LLMContext) -> APIInstance:
         """Return the instance of the API."""
-        config_entry = self.hass.config_entries.async_get_entry(self._entry_id)
+        config_entry: JournalAssistantConfigEntry = self.hass.config_entries.async_get_entry(self._entry_id)
         vector_db = config_entry.runtime_data.vector_db
         exposed_entities = _get_exposed_entities(self.hass)
         prompt = "\n".join([PROMPT, yaml.dump(list(exposed_entities.values()))])
