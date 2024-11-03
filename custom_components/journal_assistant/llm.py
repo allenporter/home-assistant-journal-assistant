@@ -127,13 +127,13 @@ class VectorSearchTool(Tool):
                 if isinstance(end_date, str):
                     end_date = datetime.date.fromisoformat(end_date)  # type: ignore[unreachable]
                 query_params.end_date = dt_util.start_of_local_day(end_date)
-        results = await hass.async_add_executor_job(self._db.query, query_params)
+        results = await self._db.query(query_params)
         _LOGGER.debug("Search results: %s", results)
         return cast(
             JsonObjectType,
             {
                 "query": query_params.to_dict(omit_none=True),
-                "results": results,
+                "results": [result.to_dict() for result in results],
             },
         )
 

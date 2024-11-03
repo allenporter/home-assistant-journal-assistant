@@ -1,11 +1,10 @@
 """Journal Assistant vector search database."""
 
-import itertools
 import logging
 from typing import Any
-from collections.abc import Generator
 from pathlib import Path
 from urllib.parse import urlparse
+import datetime
 
 import chromadb
 from chromadb.errors import ChromaError
@@ -13,11 +12,14 @@ from chromadb.api.types import IncludeEnum
 from chromadb.config import DEFAULT_TENANT, DEFAULT_DATABASE, Settings
 from chromadb.utils.embedding_functions import google_embedding_function
 
+from homeassistant.core import HomeAssistant
+
 from custom_components.journal_assistant.vectordb import (
     VectorDB,
     IndexableDocument,
     QueryParams,
     VectorDBError,
+    QueryResult,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -37,17 +39,9 @@ def _as_query_args(params: QueryParams) -> dict[str, Any]:
     if params.metadata is not None:
         filters.append(params.metadata)
     if params.start_date is not None:
-        filters.append(
-            {
-                "date": {
-                    "$gte": params.start_date.timestamp()
-                }
-            }
-        )
+        filters.append({"date": {"$gte": params.start_date.timestamp()}})
     if params.end_date is not None:
-        filters.append(
-            {"date": {"$lte": params.end_date.timestamp()}}
-        )
+        filters.append({"date": {"$lte": params.end_date.timestamp()}})
     if len(filters) > 1:
         args["where"] = {"$and": filters}
     elif len(filters) == 1:
@@ -111,7 +105,7 @@ def create_local_chroma_client(storage_path: Path) -> chromadb.api.ClientAPI:
     )
 
 
-class ChromaVectorDB(VectorDB):
+class ChromaVectorDB:
     """Journal Assistant vector search database."""
 
     def __init__(self, client: chromadb.api.ClientAPI, google_api_key: str) -> None:
@@ -168,8 +162,7 @@ class ChromaVectorDB(VectorDB):
         if not upsert_documents:
             _LOGGER.debug("Skipping batch of unchanged documents")
             return
-        _LOGGER.debug("Upserting batch of %s to index", len(upsert_documents))
-        metadatas = []
+        metadatas: list[dict[str, str]] = []
         for document in upsert_documents:
             metadata = {
                 **document.metadata,
@@ -177,12 +170,9 @@ class ChromaVectorDB(VectorDB):
             if document.timestamp:
                 metadata["date"] = document.timestamp.timestamp()
             metadatas.append(metadata)
-        _LOGGER.debug("Docs: %s", [document for document in upsert_documents])
-        _LOGGER.debug("Metadatas: %s", metadatas)
-        _LOGGER.debug("Ids: %s", [document.uid for document in upsert_documents])
         collection.upsert(
             documents=[document.document for document in upsert_documents],
-            metadatas=metadatas,
+            metadatas=metadatas,  # type: ignore[arg-type]
             ids=[document.uid for document in upsert_documents],
         )
 
@@ -191,7 +181,7 @@ class ChromaVectorDB(VectorDB):
         collection = self._query_collection()
         return collection.count()
 
-    def query(self, params: QueryParams) -> list[dict[str, Any]]:
+    def query(self, params: QueryParams) -> list[QueryResult]:
         """Search the VectorDB for relevant documents."""
         collection = self._query_collection()
         query_args = _as_query_args(params)
@@ -210,17 +200,48 @@ class ChromaVectorDB(VectorDB):
         documents = document_list[0]
         distances = distance_list[0]
         return [
-            {
-                "id": ids[index],
-                "content": documents[index],
-                "score": distances[index],
-                **metadatas[index],
-            }
+            QueryResult(
+                document=IndexableDocument(
+                    uid=ids[index],
+                    document=documents[index],
+                    timestamp=datetime.datetime.fromtimestamp(
+                        float(metadatas[index].get("date"))  # type: ignore[arg-type]
+                    ),
+                    metadata={**metadatas[index]},
+                ),
+                score=distances[index],
+            )
             for index in range(len(ids))
         ]
 
 
+class AsyncChromaVectorDB(VectorDB):
+    """Journal Assistant vector search database."""
+
+    def __init__(self, hass: HomeAssistant, chroma_vectordb: ChromaVectorDB) -> None:
+        """Initialize the vector database."""
+        self._hass = hass
+        self._chroma_vectordb = chroma_vectordb
+
+    async def upsert_index(self, documents: list[IndexableDocument]) -> None:
+        """Add notebooks to the index."""
+        await self._hass.async_add_executor_job(
+            self._chroma_vectordb.upsert_index, documents
+        )
+
+    async def count(self) -> int:
+        """Return the number of documents in the collection."""
+        return self._chroma_vectordb.count()
+
+    async def query(self, params: QueryParams) -> list[QueryResult]:
+        """Search the VectorDB for relevant documents."""
+        return await self._hass.async_add_executor_job(
+            self._chroma_vectordb.query, params
+        )
+
+
 def create_chroma_db(
+    hass: HomeAssistant,
     chromadb_url: str,
     tenant: str,
     api_key: str,
@@ -231,4 +252,5 @@ def create_chroma_db(
     except ChromaError as err:
         _LOGGER.error("Error creating ChromaDB client: %s", err)
         raise VectorDBError(f"Error creating ChromaDB client: {err}") from err
-    return ChromaVectorDB(client, api_key)
+    db = ChromaVectorDB(client, api_key)
+    return AsyncChromaVectorDB(hass, db)

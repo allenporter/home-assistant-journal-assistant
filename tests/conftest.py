@@ -2,9 +2,10 @@
 
 from collections.abc import Generator, AsyncGenerator
 import logging
-from unittest.mock import patch, Mock
+from unittest.mock import patch, Mock, AsyncMock
 from pathlib import Path
 import hashlib
+import datetime
 
 import pytest
 from syrupy import SnapshotAssertion
@@ -39,17 +40,24 @@ from custom_components.journal_assistant.const import (
     CONF_CHROMADB_URL,
     CONF_CHROMADB_TENANT,
 )
+from custom_components.journal_assistant.vectordb import QueryResult, IndexableDocument
 
 _LOGGER = logging.getLogger(__name__)
 
 TEST_DOMAIN = "test_domain"
 MEDIA_SOURCE_PREFIX = f"{URI_SCHEME}{TEST_DOMAIN}"
 FIXTURES_DIR = Path("tests/fixtures/")
-DOCUMENT_RESULT = {
-    "id": hashlib.sha256("test".encode()).hexdigest(),
-    "content": "document",
-    "notebook": "Daily",
-}
+DOCUMENT_RESULT = QueryResult(
+    document=IndexableDocument(
+        uid=hashlib.sha256("test".encode()).hexdigest(),
+        document="document",
+        timestamp=datetime.datetime(
+            2021, 1, 1, 12, 34, 0, tzinfo=datetime.timezone.utc
+        ),
+        metadata={"notebook": "Daily"},
+    ),
+    score=0.5,
+)
 
 DIFFERENT_DIRECTORY = "__snapshots__"
 
@@ -102,6 +110,7 @@ def mock_journal_storage_path() -> Generator[Path, None, None]:
 def mock_vectordb() -> Generator[Mock, None, None]:
     """Fixture to mock the VectorDB system."""
     with patch(f"custom_components.{DOMAIN}.storage.create_chroma_db") as mock_vectordb:
+        mock_vectordb.return_value = AsyncMock()
         mock_vectordb.return_value.query.return_value = [
             DOCUMENT_RESULT,
         ]

@@ -57,9 +57,13 @@ async def test_journal_llm_api(
         "query": {"query": "today", "num_results": 10},
         "results": [
             {
-                "content": "document",
-                "id": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
-                "notebook": "Daily",
+                "document": {
+                    "uid": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+                    "document": "document",
+                    "metadata": {"notebook": "Daily"},
+                    "timestamp": "2021-01-01T12:34:00+00:00",
+                },
+                "score": 0.5,
             },
         ],
     }
@@ -135,9 +139,13 @@ async def test_date_args(
         # Fake results not related to the query
         "results": [
             {
-                "content": "document",
-                "id": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
-                "notebook": "Daily",
+                "document": {
+                    "uid": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+                    "document": "document",
+                    "metadata": {"notebook": "Daily"},
+                    "timestamp": "2021-01-01T12:34:00+00:00",
+                },
+                "score": 0.5,
             },
         ],
     }

@@ -1,47 +1,7 @@
 # serializer version: 1
 # name: test_vectordb_loading
-  dict({
-    'category': 'Daily',
-    'content': '''
-      categories:
-      - Daily
-      description: '- clean garage'
-      dtstart: 2023-12-22
-      summary: Daily 2023-12-22
-  
-    ''',
-    'date': 1703224800.0,
-    'id': '3ac14d0bb8c28ac12733b156a5b96d6af62d3c3be63d488aa763a99637a407ce',
-    'name': 'Daily 2023-12-22',
-    'score': 5.000000000000001,
-  })
+  QueryResult(document=IndexableDocument(uid='3ac14d0bb8c28ac12733b156a5b96d6af62d3c3be63d488aa763a99637a407ce', timestamp=datetime.datetime(2023, 12, 22, 6, 0), metadata={'category': 'Daily', 'date': 1703224800.0, 'name': 'Daily 2023-12-22'}, document="categories:\n- Daily\ndescription: '- clean garage'\ndtstart: 2023-12-22\nsummary: Daily 2023-12-22\n"), score=5.000000000000001)
 # ---
 # name: test_vectordb_loading.1
-  dict({
-    'category': 'Daily',
-    'content': '''
-      categories:
-      - Daily
-      description: '- cardboard breakdown
-      
-        - (migrated) Bowling w/ Q
-      
-        - (completed) flux-local helm
-      
-        - todo urls?
-      
-        - (migrated) gifts plan
-      
-        - windows xmas lights
-      
-        - (migrated) fitbit python'
-      dtstart: 2023-12-21
-      summary: Daily 2023-12-21
-  
-    ''',
-    'date': 1703138400.0,
-    'id': 'caba4b5990a778e89764bdb09f6902d6fc68a48d8fe96c1d9bbe4424d00af930',
-    'name': 'Daily 2023-12-21',
-    'score': 2541.0,
-  })
+  QueryResult(document=IndexableDocument(uid='caba4b5990a778e89764bdb09f6902d6fc68a48d8fe96c1d9bbe4424d00af930', timestamp=datetime.datetime(2023, 12, 21, 6, 0), metadata={'category': 'Daily', 'date': 1703138400.0, 'name': 'Daily 2023-12-21'}, document="categories:\n- Daily\ndescription: '- cardboard breakdown\n\n  - (migrated) Bowling w/ Q\n\n  - (completed) flux-local helm\n\n  - todo urls?\n\n  - (migrated) gifts plan\n\n  - windows xmas lights\n\n  - (migrated) fitbit python'\ndtstart: 2023-12-21\nsummary: Daily 2023-12-21\n"), score=2541.0)
 # ---

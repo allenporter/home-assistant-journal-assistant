@@ -3,7 +3,7 @@
 import datetime
 import logging
 from dataclasses import dataclass
-from collections.abc import Callable
+from collections.abc import Callable, Awaitable
 from typing import Any
 
 
@@ -127,4 +127,7 @@ class VectorDBCountSensorEntity(SensorEntity):
 
     async def async_update(self) -> None:
         """Update the sensor state."""
-        self._attr_native_value = self.entity_description.value_fn(self._data)
+        task = self.entity_description.value_fn(self._data)
+        if isinstance(task, Awaitable):
+            task = await task
+        self._attr_native_value = task

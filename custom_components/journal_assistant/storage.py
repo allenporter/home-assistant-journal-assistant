@@ -1,5 +1,6 @@
 """Library for handling Journal Assistant storage."""
 
+import asyncio
 from pathlib import Path
 import logging
 
@@ -17,7 +18,11 @@ from .const import (
     CONF_API_KEY,
     CONF_CHROMADB_TENANT,
 )
-from .processing.journal import journal_from_yaml, write_journal_page_yaml, indexable_notebooks_iterator
+from .processing.journal import (
+    journal_from_yaml,
+    write_journal_page_yaml,
+    indexable_notebooks_iterator,
+)
 from .processing.chromadb_vectordb import (
     create_chroma_db,
 )
@@ -73,6 +78,7 @@ async def save_journal_entry(
 
 
 def _create_vector_db(
+    hass: HomeAssistant,
     chromadb_url: str,
     tenant: str,
     api_key: str,
@@ -80,24 +86,29 @@ def _create_vector_db(
 ) -> VectorDB:
     _LOGGER.debug("Creating VectorDB")
     try:
-        vectordb = create_chroma_db(chromadb_url, tenant, api_key)
+        vectordb = create_chroma_db(hass, chromadb_url, tenant, api_key)
     except VectorDBError as err:
         _LOGGER.error("Error creating ChromaDB client: %s", err)
         raise HomeAssistantError(f"Error creating ChromaDB client: {err}") from err
-
-    _LOGGER.debug("Upserting document index")
-    for document_batch in indexable_notebooks_iterator(entries):
-        vectordb.upsert_index(document_batch)
     return vectordb
 
 
 async def create_vector_db(hass: HomeAssistant, entry: ConfigEntry) -> VectorDB:
     """Create a VectorDB instance."""
     entries = await load_journal_entries(hass, entry)
-    return await hass.async_add_executor_job(  # type: ignore[no-any-return]
+    vectordb = await hass.async_add_executor_job(  # type: ignore[no-any-return]
         _create_vector_db,
+        hass,
         entry.options[CONF_CHROMADB_URL],
         entry.options[CONF_CHROMADB_TENANT],
         entry.options[CONF_API_KEY],
         entries,
     )
+
+    _LOGGER.debug("Upserting document index")
+    tasks = []
+    for document_batch in indexable_notebooks_iterator(entries):
+        tasks.append(vectordb.upsert_index(document_batch))
+    await asyncio.gather(*tasks)
+
+    return vectordb

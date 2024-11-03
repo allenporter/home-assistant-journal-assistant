@@ -3,20 +3,15 @@
 import itertools
 import logging
 from dataclasses import dataclass
-from typing import Any
-from collections.abc import Generator, Callable
-from pathlib import Path
-from urllib.parse import urlparse
+from collections.abc import Callable, Awaitable
 
 import numpy as np
 
-from homeassistant.util import dt as dt_util
 
 from custom_components.journal_assistant.vectordb import (
     VectorDB,
     IndexableDocument,
     QueryParams,
-    VectorDBError,
     QueryResult,
 )
 
@@ -36,20 +31,23 @@ class Embedding:
     embedding: np.ndarray
     """The embedding."""
 
-EmbeddingFunction = Callable[[str], Embedding]
+
+EmbeddingFunction = Callable[[str], Awaitable[Embedding]]
 
 
 class LocalVectorDB(VectorDB):
     """Local vector search database."""
 
-    def __init__(self, index_fn: EmbeddingFunction, query_fn: EmbeddingFunction) -> None:
+    def __init__(
+        self, index_fn: EmbeddingFunction, query_fn: EmbeddingFunction
+    ) -> None:
         """Initialize the vector database."""
         self._index_fn = index_fn
         self._query_fn = query_fn
         self._documents: dict[str, IndexableDocument] = {}
         self._embeddings: dict[str, Embedding] = {}
 
-    def upsert_index(self, documents: list[IndexableDocument]) -> None:
+    async def upsert_index(self, documents: list[IndexableDocument]) -> None:
         """Add notebooks to the index."""
         _LOGGER.debug("Upserting %d documents in the index", len(documents))
 
@@ -59,24 +57,28 @@ class LocalVectorDB(VectorDB):
                     # Skip if the document is already in the index
                     continue
             self._documents[document.uid] = document
-            self._embeddings[document.uid] = self._index_fn(document.document)
+            self._embeddings[document.uid] = await self._index_fn(document.document)
 
-    def count(self) -> int:
+    async def count(self) -> int:
         """Return the number of documents in the collection."""
         return len(self._documents)
 
-    def query(self, params: QueryParams) -> list[dict[str, Any]]:
+    async def query(self, params: QueryParams) -> list[QueryResult]:
         """Search the VectorDB for relevant documents."""
 
         # The results will be sorted by the query embedding
         query_embedding: Embedding | None = None
         if params.query:
-            query_embedding = self._query_fn(params.query)
+            query_embedding = await self._query_fn(params.query)
 
         def document_filter(document: IndexableDocument) -> bool:
-            if params.start_date is not None and document.timestamp < params.start_date:
+            if params.start_date is not None and (
+                document.timestamp is None or document.timestamp < params.start_date
+            ):
                 return False
-            if params.end_date is not None and document.timestamp > params.end_date:
+            if params.end_date is not None and (
+                document.timestamp is None or document.timestamp > params.end_date
+            ):
                 return False
             if params.metadata is not None:
                 for key, value in params.metadata.items():
@@ -87,7 +89,9 @@ class LocalVectorDB(VectorDB):
         def compute_distance(document: IndexableDocument) -> float:
             if query_embedding is None:
                 return 0.0
-            return np.linalg.norm(query_embedding.embedding - self._embeddings[document.uid].embedding)
+            return np.linalg.norm(  # type: ignore[return-value]
+                query_embedding.embedding - self._embeddings[document.uid].embedding
+            )
 
         distances = sorted(
             (
@@ -100,4 +104,6 @@ class LocalVectorDB(VectorDB):
             ),
             key=lambda result: result.score,
         )
-        return list(itertools.islice(distances, params.num_results or DEFAULT_MAX_RESULTS))
+        return list(
+            itertools.islice(distances, params.num_results or DEFAULT_MAX_RESULTS)
+        )

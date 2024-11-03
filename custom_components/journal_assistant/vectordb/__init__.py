@@ -54,7 +54,7 @@ class QueryParams(DataClassJSONMixin):
 
 
 @dataclass(kw_only=True)
-class QueryResult:
+class QueryResult(DataClassJSONMixin):
     """Query result from the VectorDB."""
 
     document: IndexableDocument
@@ -64,18 +64,17 @@ class QueryResult:
     """The similarity score of the document."""
 
 
-
 class VectorDB(ABC):
     """Journal Assistant vector search database."""
 
     @abstractmethod
-    def upsert_index(self, documents: list[IndexableDocument]) -> None:
+    async def upsert_index(self, documents: list[IndexableDocument]) -> None:
         """Add notebooks to the index."""
 
     @abstractmethod
-    def count(self) -> int:
+    async def count(self) -> int:
         """Return the number of documents in the collection."""
 
     @abstractmethod
-    def query(self, params: QueryParams) -> list[dict[str, Any]]:
+    async def query(self, params: QueryParams) -> list[QueryResult]:
         """Search the VectorDB for relevant documents."""
