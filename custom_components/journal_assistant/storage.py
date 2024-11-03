@@ -17,9 +17,8 @@ from .const import (
     CONF_API_KEY,
     CONF_CHROMADB_TENANT,
 )
-from .processing.journal import journal_from_yaml, write_journal_page_yaml
+from .processing.journal import journal_from_yaml, write_journal_page_yaml, indexable_notebooks_iterator
 from .processing.chromadb_vectordb import (
-    indexable_notebooks_iterator,
     create_chroma_db,
 )
 from .processing.model import JournalPage

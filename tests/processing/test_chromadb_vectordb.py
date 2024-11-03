@@ -15,7 +15,7 @@ import pytest
 
 from custom_components.journal_assistant.const import DOMAIN
 from custom_components.journal_assistant.processing import chromadb_vectordb
-from custom_components.journal_assistant.processing.journal import journal_from_yaml
+from custom_components.journal_assistant.processing.journal import journal_from_yaml, create_indexable_document
 from custom_components.journal_assistant.vectordb import (
     QueryParams,
 )
@@ -83,7 +83,7 @@ def test_vectordb_loading(
     db = chromadb_vectordb.ChromaVectorDB(client, "12345")
     db.upsert_index(
         [
-            chromadb_vectordb.create_indexable_document(entry)
+            create_indexable_document(entry)
             for entry in first_calendar.journal
         ]
     )
@@ -92,7 +92,7 @@ def test_vectordb_loading(
     # Add the rest, which skips the duplicate
     db.upsert_index(
         [
-            chromadb_vectordb.create_indexable_document(entry)
+            create_indexable_document(entry)
             for calendar in entries.values()
             for entry in calendar.journal
         ]

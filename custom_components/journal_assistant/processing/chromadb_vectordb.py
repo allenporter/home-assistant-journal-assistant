@@ -5,7 +5,6 @@ import logging
 from typing import Any
 from collections.abc import Generator
 from pathlib import Path
-import yaml
 from urllib.parse import urlparse
 
 import chromadb
@@ -27,7 +26,7 @@ from custom_components.journal_assistant.vectordb import (
 
 _LOGGER = logging.getLogger(__name__)
 
-INDEX_BATCH_SIZE = 25
+
 DEFAULT_MAX_RESULTS = 10
 COLLECTION_NAME = "journal_assistant"
 MODEL = "models/text-embedding-004"
@@ -61,43 +60,7 @@ def _as_query_args(params: QueryParams) -> dict[str, Any]:
     return args
 
 
-def _serialize_content(item: Journal) -> str:
-    """Serialize a journal entry."""
-    return yaml.dump(item.dict(exclude={"uid", "dtsamp"}, exclude_unset=True, exclude_none=True))  # type: ignore[no-any-return]
-
-
-def create_indexable_document(journal_entry: Journal) -> IndexableDocument:
-    """Create an indexable document from a journal entry."""
-    return IndexableDocument(
-        uid=journal_entry.uid or "",
-        document=_serialize_content(journal_entry),
-        timestamp=dt_util.start_of_local_day(journal_entry.dtstart),
-        metadata={
-            "category": (next(iter(journal_entry.categories), "")),
-            "name": journal_entry.summary or "",
-        },
-    )
-
-
-def indexable_notebooks_iterator(
-    notebooks: dict[str, Calendar], batch_size: int | None = None
-) -> Generator[list[IndexableDocument]]:
-    """Iterate over notebooks in batches."""
-    total = sum(len(calendar.journal) for calendar in notebooks.values())
-    count = 0
-    for calendar in notebooks.values():
-        for found_journal_entries in itertools.batched(
-            calendar.journal, batch_size or INDEX_BATCH_SIZE
-        ):
-            count += len(found_journal_entries)
-            _LOGGER.debug("Processing batch %s of %s", count, total)
-            yield [
-                create_indexable_document(journal_entry)
-                for journal_entry in found_journal_entries
-            ]
-
-
-def create_chromadb_client(chromadb_url: str, tenant: str) -> chromadb.api.ClientAPI:
+def _create_chromadb_client(chromadb_url: str, tenant: str) -> chromadb.api.ClientAPI:
     """Create a ChromaDB client."""
     _LOGGER.debug("Creating ChromaDB client for tenant: %s", tenant)
     url = urlparse(chromadb_url)
@@ -268,7 +231,7 @@ def create_chroma_db(
 ) -> VectorDB:
     _LOGGER.debug("Creating VectorDB")
     try:
-        client = create_chromadb_client(chromadb_url, tenant)
+        client = _create_chromadb_client(chromadb_url, tenant)
     except ChromaError as err:
         _LOGGER.error("Error creating ChromaDB client: %s", err)
         raise VectorDBError(f"Error creating ChromaDB client: {err}") from err

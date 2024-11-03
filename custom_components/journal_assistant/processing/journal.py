@@ -1,13 +1,21 @@
 """Converter from yaml journal files to an RFC5545 Journal."""
 
 from pathlib import Path
+import itertools
 import datetime
 import logging
 import hashlib
 from typing import cast
+from collections.abc import Generator
+
 
 from ical.calendar import Calendar
 from ical.journal import Journal
+
+import yaml
+
+from homeassistant.util import dt as dt_util
+from custom_components.journal_assistant.vectordb import IndexableDocument
 
 from .model import JournalPage
 
@@ -17,6 +25,7 @@ __all__ = [
     "journal_from_yaml",
 ]
 
+INDEX_BATCH_SIZE = 25
 
 def journal_pages(storage_dir: Path, journal_name: str) -> list[JournalPage]:
     """Load all journal pages from a storage directory with the specified journal prefix."""
@@ -133,3 +142,40 @@ def journal_from_yaml(
         journals[key_name] = calendar
 
     return journals
+
+
+
+def _serialize_content(item: Journal) -> str:
+    """Serialize a journal entry."""
+    return yaml.dump(item.dict(exclude={"uid", "dtsamp"}, exclude_unset=True, exclude_none=True))  # type: ignore[no-any-return]
+
+
+def create_indexable_document(journal_entry: Journal) -> IndexableDocument:
+    """Create an indexable document from a journal entry."""
+    return IndexableDocument(
+        uid=journal_entry.uid or "",
+        document=_serialize_content(journal_entry),
+        timestamp=dt_util.start_of_local_day(journal_entry.dtstart),
+        metadata={
+            "category": (next(iter(journal_entry.categories), "")),
+            "name": journal_entry.summary or "",
+        },
+    )
+
+
+def indexable_notebooks_iterator(
+    notebooks: dict[str, Calendar], batch_size: int | None = None
+) -> Generator[list[IndexableDocument]]:
+    """Iterate over notebooks in batches."""
+    total = sum(len(calendar.journal) for calendar in notebooks.values())
+    count = 0
+    for calendar in notebooks.values():
+        for found_journal_entries in itertools.batched(
+            calendar.journal, batch_size or INDEX_BATCH_SIZE
+        ):
+            count += len(found_journal_entries)
+            _LOGGER.debug("Processing batch %s of %s", count, total)
+            yield [
+                create_indexable_document(journal_entry)
+                for journal_entry in found_journal_entries
+            ]
