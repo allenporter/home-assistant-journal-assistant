@@ -39,8 +39,8 @@ def _as_query_args(params: QueryParams) -> dict[str, Any]:
     args: dict[str, Any] = {}
     args["query_texts"] = [params.query if params.query else EMPTY_QUERY]
     filters: list[dict[str, Any]] = []
-    if params.category is not None:
-        filters.append({"category": params.category})
+    if params.metadata is not None:
+        filters.append(params.metadata)
     if params.start_date is not None:
         filters.append(
             {
@@ -71,9 +71,9 @@ def create_indexable_document(journal_entry: Journal) -> IndexableDocument:
     return IndexableDocument(
         uid=journal_entry.uid or "",
         document=_serialize_content(journal_entry),
+        timestamp=dt_util.start_of_local_day(journal_entry.dtstart),
         metadata={
             "category": (next(iter(journal_entry.categories), "")),
-            "date": dt_util.start_of_local_day(journal_entry.dtstart).timestamp(),
             "name": journal_entry.summary or "",
         },
     )
@@ -210,9 +210,20 @@ class ChromaVectorDB(VectorDB):
             _LOGGER.debug("Skipping batch of unchanged documents")
             return
         _LOGGER.debug("Upserting batch of %s to index", len(upsert_documents))
+        metadatas = []
+        for document in upsert_documents:
+            metadata = {
+                **document.metadata,
+            }
+            if document.timestamp:
+                metadata["date"] = document.timestamp.timestamp()
+            metadatas.append(metadata)
+        _LOGGER.debug("Docs: %s", [document for document in upsert_documents])
+        _LOGGER.debug("Metadatas: %s", metadatas)
+        _LOGGER.debug("Ids: %s", [document.uid for document in upsert_documents])
         collection.upsert(
             documents=[document.document for document in upsert_documents],
-            metadatas=[document.metadata for document in upsert_documents],
+            metadatas=metadatas,
             ids=[document.uid for document in upsert_documents],
         )
 

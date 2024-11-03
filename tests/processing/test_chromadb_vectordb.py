@@ -109,7 +109,7 @@ def test_vectordb_loading(
     results = db.query(
         QueryParams(
             query="gifts",
-            category="Daily",
+            metadata={"category": "Daily"},
             start_date=datetime.date(2023, 12, 21),
             end_date=datetime.date(2023, 12, 21),
             num_results=5,

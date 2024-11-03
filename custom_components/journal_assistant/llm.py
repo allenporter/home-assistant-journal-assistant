@@ -111,28 +111,21 @@ class VectorSearchTool(Tool):
         args = self.parameters(tool_input.tool_args)
         query_params = QueryParams(
             query=args.get("query"),
-            category=args.get("notebook_name"),
             num_results=NUM_RESULTS,
         )
-        # Hack to strip the notebook name so it matches the vectordb category field. This matches
-        # the logic entity id logic in calendar entity.
-        if query_params.category is not None and query_params.category.startswith(
-            self._entry_title
-        ):
-            query_params.category = query_params.category[len(self._entry_title) + 1 :]
+        if category := args.get("notebook_name"):
+            if category.startswith(self._entry_title):
+                category = category[len(self._entry_title) + 1 :]
+            query_params.metadata = {"category": category}
         if args.get("date_range"):
-            start_date: datetime.date | None = None
-            end_date: datetime.date | None = None
-            if args["date_range"].get("start"):
-                start_date = args["date_range"]["start"]
+            if start_date := args["date_range"].get("start"):
                 if isinstance(start_date, str):
                     start_date = datetime.date.fromisoformat(start_date)  # type: ignore[unreachable]
-            if args["date_range"].get("end"):
-                end_date = args["date_range"]["end"]
+                query_params.start_date = start_date
+            if end_date := args["date_range"].get("end"):
                 if isinstance(end_date, str):
                     end_date = datetime.date.fromisoformat(end_date)  # type: ignore[unreachable]
-            query_params.start_date = start_date
-            query_params.end_date = end_date
+                query_params.end_date = end_date
         results = await hass.async_add_executor_job(self._db.query, query_params)
         _LOGGER.debug("Search results: %s", results)
         return cast(

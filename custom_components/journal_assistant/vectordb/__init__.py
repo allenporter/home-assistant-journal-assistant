@@ -1,6 +1,6 @@
 """Vector DB component for Home Assistant."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 from typing import Any
 import datetime
@@ -18,8 +18,16 @@ class IndexableDocument:
     """An indexable document."""
 
     uid: str
-    metadata: dict[str, Any]
+    """Unique identifier for the document."""
+
+    timestamp: datetime.datetime | None
+    """Timestamp of the document used for date restricts."""
+
+    metadata: dict[str, Any] = field(default_factory=dict)
+    """Metadata fields the document that can be searched."""
+
     document: str
+    """The document content that will be indexed."""
 
 
 @dataclass(kw_only=True)
@@ -27,29 +35,22 @@ class QueryParams(DataClassJSONMixin):
     """Query parameters for the VectorDB."""
 
     query: str | None = None
-    start_date: datetime.date | None = None
-    end_date: datetime.date | None = None
-    category: str | None = None  # Notebook name in practice
+    """The query string."""
+
+    start_date: datetime.datetime | None = None
+    """Only include document chunks on or after this date."""
+
+    end_date: datetime.datetime | None = None
+    """Only include document chunks on or before this date."""
+
+    metadata: dict[str, Any] | None = None
+
     num_results: int | None = None
+    """Maximum number of results to return."""
 
     class Config(BaseConfig):
         omit_none = False
         code_generation_options = ["TO_DICT_ADD_OMIT_NONE_FLAG"]
-
-
-# class Embedding(ABC):
-#     """Embedding for VectorDB."""
-
-#     value: np.ndarray
-#     """The embedding value."""
-
-
-# class EmbeddingFunction(ABC):
-#     """Embedding function for VectorDB."""
-
-#     @abstractmethod
-#     def __call__(self, document: str) -> Embedding:
-#         """Return the embedding of the document."""
 
 
 class VectorDB(ABC):

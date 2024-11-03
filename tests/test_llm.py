@@ -126,7 +126,7 @@ async def test_date_args(
     function_response = await llm_api.async_call_tool(tool_input)
     assert function_response == {
         "query": {
-            "category": "Supernote Monthly",
+            "metadata": {"category": "Supernote Monthly"},
             "start_date": "2024-09-01",
             "end_date": "2024-09-30",
             "num_results": 10,
