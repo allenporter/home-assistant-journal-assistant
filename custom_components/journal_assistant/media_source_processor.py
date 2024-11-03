@@ -111,7 +111,7 @@ class MediaSourceProcessor:
         self._hass = hass
         self._media_source_prefix = media_source_prefix
         self._config_entry_id = config_entry_id
-        self._store = Store(
+        self._store: Store = Store(
             hass,
             version=STORAGE_VERSION,
             key=HASH_STORAGE_PATH.format(config_entry_id=config_entry_id),
