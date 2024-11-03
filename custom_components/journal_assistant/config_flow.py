@@ -20,7 +20,7 @@ from homeassistant.helpers.schema_config_entry_flow import (
     SchemaFlowError,
     SchemaCommonFlowHandler,
 )
-from .processing.vectordb import (
+from .processing.chromadb_vectordb import (
     create_tenant,
 )
 from .const import (

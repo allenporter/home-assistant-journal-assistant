@@ -4,7 +4,6 @@ from pathlib import Path
 import logging
 
 from ical.calendar import Calendar
-from chromadb.errors import ChromaError
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
@@ -19,12 +18,12 @@ from .const import (
     CONF_CHROMADB_TENANT,
 )
 from .processing.journal import journal_from_yaml, write_journal_page_yaml
-from .processing.vectordb import (
-    VectorDB,
+from .processing.chromadb_vectordb import (
     indexable_notebooks_iterator,
-    create_chromadb_client,
+    create_chroma_db,
 )
 from .processing.model import JournalPage
+from .vectordb import VectorDB, VectorDBError
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -82,11 +81,11 @@ def _create_vector_db(
 ) -> VectorDB:
     _LOGGER.debug("Creating VectorDB")
     try:
-        client = create_chromadb_client(chromadb_url, tenant)
-    except ChromaError as err:
+        vectordb = create_chroma_db(chromadb_url, tenant, api_key)
+    except VectorDBError as err:
         _LOGGER.error("Error creating ChromaDB client: %s", err)
         raise HomeAssistantError(f"Error creating ChromaDB client: {err}") from err
-    vectordb = VectorDB(client, api_key)
+
     _LOGGER.debug("Upserting document index")
     for document_batch in indexable_notebooks_iterator(entries):
         vectordb.upsert_index(document_batch)

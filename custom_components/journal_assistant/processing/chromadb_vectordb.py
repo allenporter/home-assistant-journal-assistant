@@ -6,21 +6,24 @@ from typing import Any
 from collections.abc import Generator
 from pathlib import Path
 import yaml
-from dataclasses import dataclass
-import datetime
 from urllib.parse import urlparse
 
 import chromadb
+from chromadb.errors import ChromaError
 from chromadb.api.types import IncludeEnum
 from chromadb.config import DEFAULT_TENANT, DEFAULT_DATABASE, Settings
 from chromadb.utils.embedding_functions import google_embedding_function
 from ical.calendar import Calendar
 from ical.journal import Journal
-from mashumaro.mixins.json import DataClassJSONMixin
-from mashumaro.config import BaseConfig
 
 from homeassistant.util import dt as dt_util
 
+from custom_components.journal_assistant.vectordb import (
+    VectorDB,
+    IndexableDocument,
+    QueryParams,
+    VectorDBError,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -31,51 +34,31 @@ MODEL = "models/text-embedding-004"
 EMPTY_QUERY = "task"  # Arbitrary query to use when no query is provided
 
 
-@dataclass(kw_only=True)
-class QueryParams(DataClassJSONMixin):
-    """Query parameters for the VectorDB."""
-
-    query: str | None = None
-    date_range: tuple[datetime.date | None, datetime.date | None] | None = None
-    category: str | None = None  # Notebook name in practice
-    num_results: int | None = None
-
-    def as_query_args(self) -> dict[str, Any]:
-        """Return the query arguments for vectordb query."""
-        args: dict[str, Any] = {}
-        args["query_texts"] = [self.query if self.query else EMPTY_QUERY]
-        filters: list[dict[str, Any]] = []
-        if self.category is not None:
-            filters.append({"category": self.category})
-        if self.date_range is not None:
-            start, end = self.date_range
-            if start is not None:
-                filters.append(
-                    {"date": {"$gte": dt_util.start_of_local_day(start).timestamp()}}
-                )
-            if end is not None:
-                filters.append(
-                    {"date": {"$lte": dt_util.start_of_local_day(end).timestamp()}}
-                )
-        if len(filters) > 1:
-            args["where"] = {"$and": filters}
-        elif len(filters) == 1:
-            args["where"] = filters[0]
-        args["n_results"] = self.num_results or DEFAULT_MAX_RESULTS
-        return args
-
-    class Config(BaseConfig):
-        omit_none = False
-        code_generation_options = ["TO_DICT_ADD_OMIT_NONE_FLAG"]
-
-
-@dataclass
-class IndexableDocument:
-    """An indexable document."""
-
-    uid: str
-    metadata: dict[str, Any]
-    document: str
+def _as_query_args(params: QueryParams) -> dict[str, Any]:
+    """Return the query arguments for vectordb query."""
+    args: dict[str, Any] = {}
+    args["query_texts"] = [params.query if params.query else EMPTY_QUERY]
+    filters: list[dict[str, Any]] = []
+    if params.category is not None:
+        filters.append({"category": params.category})
+    if params.start_date is not None:
+        filters.append(
+            {
+                "date": {
+                    "$gte": dt_util.start_of_local_day(params.start_date).timestamp()
+                }
+            }
+        )
+    if params.end_date is not None:
+        filters.append(
+            {"date": {"$lte": dt_util.start_of_local_day(params.end_date).timestamp()}}
+        )
+    if len(filters) > 1:
+        args["where"] = {"$and": filters}
+    elif len(filters) == 1:
+        args["where"] = filters[0]
+    args["n_results"] = params.num_results or DEFAULT_MAX_RESULTS
+    return args
 
 
 def _serialize_content(item: Journal) -> str:
@@ -169,7 +152,7 @@ def create_local_chroma_client(storage_path: Path) -> chromadb.api.ClientAPI:
     )
 
 
-class VectorDB:
+class ChromaVectorDB(VectorDB):
     """Journal Assistant vector search database."""
 
     def __init__(self, client: chromadb.api.ClientAPI, google_api_key: str) -> None:
@@ -241,7 +224,7 @@ class VectorDB:
     def query(self, params: QueryParams) -> list[dict[str, Any]]:
         """Search the VectorDB for relevant documents."""
         collection = self._query_collection()
-        query_args = params.as_query_args()
+        query_args = _as_query_args(params)
         _LOGGER.debug("Querying collection %s with args %s", collection, query_args)
         results: chromadb.QueryResult = collection.query(**query_args)
         if (
@@ -265,3 +248,17 @@ class VectorDB:
             }
             for index in range(len(ids))
         ]
+
+
+def create_chroma_db(
+    chromadb_url: str,
+    tenant: str,
+    api_key: str,
+) -> VectorDB:
+    _LOGGER.debug("Creating VectorDB")
+    try:
+        client = create_chromadb_client(chromadb_url, tenant)
+    except ChromaError as err:
+        _LOGGER.error("Error creating ChromaDB client: %s", err)
+        raise VectorDBError(f"Error creating ChromaDB client: {err}") from err
+    return ChromaVectorDB(client, api_key)

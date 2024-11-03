@@ -17,7 +17,7 @@ from homeassistant.helpers.llm import Tool, ToolInput
 from homeassistant.util.json import JsonObjectType
 
 from .const import DOMAIN
-from .processing.vectordb import VectorDB, QueryParams
+from .vectordb import VectorDB, QueryParams
 from .types import JournalAssistantConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
@@ -131,7 +131,8 @@ class VectorSearchTool(Tool):
                 end_date = args["date_range"]["end"]
                 if isinstance(end_date, str):
                     end_date = datetime.date.fromisoformat(end_date)  # type: ignore[unreachable]
-            query_params.date_range = (start_date, end_date)
+            query_params.start_date = start_date
+            query_params.end_date = end_date
         results = await hass.async_add_executor_job(self._db.query, query_params)
         _LOGGER.debug("Search results: %s", results)
         return cast(

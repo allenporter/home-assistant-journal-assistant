@@ -93,9 +93,7 @@ def mock_journal_storage_path() -> Generator[Path, None, None]:
 @pytest.fixture(name="mock_vectordb")
 def mock_vectordb() -> Generator[Mock, None, None]:
     """Fixture to mock the VectorDB system."""
-    with patch(f"custom_components.{DOMAIN}.storage.create_chromadb_client"), patch(
-        f"custom_components.{DOMAIN}.storage.VectorDB",
-    ) as mock_vectordb:
+    with patch(f"custom_components.{DOMAIN}.storage.create_chroma_db") as mock_vectordb:
         mock_vectordb.return_value.query.return_value = [
             DOCUMENT_RESULT,
         ]

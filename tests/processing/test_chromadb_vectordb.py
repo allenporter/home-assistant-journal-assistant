@@ -14,8 +14,11 @@ from syrupy import SnapshotAssertion
 import pytest
 
 from custom_components.journal_assistant.const import DOMAIN
-from custom_components.journal_assistant.processing import vectordb
+from custom_components.journal_assistant.processing import chromadb_vectordb
 from custom_components.journal_assistant.processing.journal import journal_from_yaml
+from custom_components.journal_assistant.vectordb import (
+    QueryParams,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -57,7 +60,7 @@ def mock_embedding_function() -> Generator[FakeEmbeddingFunction, None, None]:
     """Fixture to mock the embedding function."""
     fake_embedding = FakeEmbeddingFunction()
     with patch(
-        f"custom_components.{DOMAIN}.processing.vectordb.google_embedding_function.GoogleGenerativeAiEmbeddingFunction",
+        f"custom_components.{DOMAIN}.processing.chromadb_vectordb.google_embedding_function.GoogleGenerativeAiEmbeddingFunction",
         return_value=fake_embedding,
     ):
         yield fake_embedding
@@ -76,17 +79,20 @@ def test_vectordb_loading(
 
     # Add the first entry to the index
     first_calendar = next(iter(entries.values()))
-    client = vectordb.create_local_chroma_client(storage_path)
-    db = vectordb.VectorDB(client, "12345")
+    client = chromadb_vectordb.create_local_chroma_client(storage_path)
+    db = chromadb_vectordb.ChromaVectorDB(client, "12345")
     db.upsert_index(
-        [vectordb.create_indexable_document(entry) for entry in first_calendar.journal]
+        [
+            chromadb_vectordb.create_indexable_document(entry)
+            for entry in first_calendar.journal
+        ]
     )
     assert embedding_function.embeds == 4
 
     # Add the rest, which skips the duplicate
     db.upsert_index(
         [
-            vectordb.create_indexable_document(entry)
+            chromadb_vectordb.create_indexable_document(entry)
             for calendar in entries.values()
             for entry in calendar.journal
         ]
@@ -95,16 +101,17 @@ def test_vectordb_loading(
 
     assert db.count() == 7
 
-    results = db.query(vectordb.QueryParams(query="tree", num_results=5))
+    results = db.query(QueryParams(query="tree", num_results=5))
     assert len(results) == 5
     assert results[0] == snapshot
 
     # Limit results to a single date
     results = db.query(
-        vectordb.QueryParams(
+        QueryParams(
             query="gifts",
             category="Daily",
-            date_range=(datetime.date(2023, 12, 21), datetime.date(2023, 12, 21)),
+            start_date=datetime.date(2023, 12, 21),
+            end_date=datetime.date(2023, 12, 21),
             num_results=5,
         )
     )

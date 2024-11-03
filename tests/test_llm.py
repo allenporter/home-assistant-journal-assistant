@@ -127,10 +127,8 @@ async def test_date_args(
     assert function_response == {
         "query": {
             "category": "Supernote Monthly",
-            "date_range": [
-                "2024-09-01",
-                "2024-09-30",
-            ],
+            "start_date": "2024-09-01",
+            "end_date": "2024-09-30",
             "num_results": 10,
             "query": "monthly review",
         },
