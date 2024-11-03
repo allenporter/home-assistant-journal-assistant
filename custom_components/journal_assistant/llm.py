@@ -15,6 +15,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.llm import Tool, ToolInput
 from homeassistant.util.json import JsonObjectType
+from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
 from .vectordb import VectorDB, QueryParams
@@ -121,11 +122,11 @@ class VectorSearchTool(Tool):
             if start_date := args["date_range"].get("start"):
                 if isinstance(start_date, str):
                     start_date = datetime.date.fromisoformat(start_date)  # type: ignore[unreachable]
-                query_params.start_date = start_date
+                query_params.start_date = dt_util.start_of_local_day(start_date)
             if end_date := args["date_range"].get("end"):
                 if isinstance(end_date, str):
                     end_date = datetime.date.fromisoformat(end_date)  # type: ignore[unreachable]
-                query_params.end_date = end_date
+                query_params.end_date = dt_util.start_of_local_day(end_date)
         results = await hass.async_add_executor_job(self._db.query, query_params)
         _LOGGER.debug("Search results: %s", results)
         return cast(

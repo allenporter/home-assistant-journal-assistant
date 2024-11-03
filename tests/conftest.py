@@ -80,6 +80,14 @@ def mock_platforms_fixture() -> list[Platform]:
     return []
 
 
+@pytest.fixture(autouse=True)
+async def set_time_zone(hass: HomeAssistant) -> None:
+    """Set the time zone for the tests."""
+    # Set our timezone to CST/Regina so we can check calculations
+    # This keeps UTC-6 all year round
+    await hass.config.async_set_time_zone("America/Regina")
+
+
 @pytest.fixture(name="journal_storage_path")
 def mock_journal_storage_path() -> Generator[Path, None, None]:
     """Fake out the storage path to load from the fixtures directory."""

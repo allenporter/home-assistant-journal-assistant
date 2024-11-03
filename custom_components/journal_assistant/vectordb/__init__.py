@@ -53,6 +53,18 @@ class QueryParams(DataClassJSONMixin):
         code_generation_options = ["TO_DICT_ADD_OMIT_NONE_FLAG"]
 
 
+@dataclass(kw_only=True)
+class QueryResult:
+    """Query result from the VectorDB."""
+
+    document: IndexableDocument
+    """The document that was found."""
+
+    score: float
+    """The similarity score of the document."""
+
+
+
 class VectorDB(ABC):
     """Journal Assistant vector search database."""
 

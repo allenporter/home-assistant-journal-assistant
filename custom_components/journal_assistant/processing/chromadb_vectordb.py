@@ -12,10 +12,6 @@ from chromadb.errors import ChromaError
 from chromadb.api.types import IncludeEnum
 from chromadb.config import DEFAULT_TENANT, DEFAULT_DATABASE, Settings
 from chromadb.utils.embedding_functions import google_embedding_function
-from ical.calendar import Calendar
-from ical.journal import Journal
-
-from homeassistant.util import dt as dt_util
 
 from custom_components.journal_assistant.vectordb import (
     VectorDB,
@@ -44,13 +40,13 @@ def _as_query_args(params: QueryParams) -> dict[str, Any]:
         filters.append(
             {
                 "date": {
-                    "$gte": dt_util.start_of_local_day(params.start_date).timestamp()
+                    "$gte": params.start_date.timestamp()
                 }
             }
         )
     if params.end_date is not None:
         filters.append(
-            {"date": {"$lte": dt_util.start_of_local_day(params.end_date).timestamp()}}
+            {"date": {"$lte": params.end_date.timestamp()}}
         )
     if len(filters) > 1:
         args["where"] = {"$and": filters}

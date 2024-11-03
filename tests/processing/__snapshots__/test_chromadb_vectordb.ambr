@@ -10,7 +10,7 @@
       summary: Daily 2023-12-22
   
     ''',
-    'date': 1703232000.0,
+    'date': 1703224800.0,
     'id': '3ac14d0bb8c28ac12733b156a5b96d6af62d3c3be63d488aa763a99637a407ce',
     'name': 'Daily 2023-12-22',
     'score': 5.000000000000001,
@@ -39,7 +39,7 @@
       summary: Daily 2023-12-21
   
     ''',
-    'date': 1703145600.0,
+    'date': 1703138400.0,
     'id': 'caba4b5990a778e89764bdb09f6902d6fc68a48d8fe96c1d9bbe4424d00af930',
     'name': 'Daily 2023-12-21',
     'score': 2541.0,
