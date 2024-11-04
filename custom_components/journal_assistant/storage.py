@@ -84,7 +84,7 @@ async def create_vector_db(hass: HomeAssistant, entry: ConfigEntry) -> VectorDB:
 
     storage_path = vectordb_storage_path(hass, entry.entry_id)
 
-    def _ensure_exsts(s) -> None:
+    def _ensure_exsts() -> None:
         storage_path.parent.mkdir(parents=True, exist_ok=True)
 
     await hass.async_add_executor_job(_ensure_exsts)
