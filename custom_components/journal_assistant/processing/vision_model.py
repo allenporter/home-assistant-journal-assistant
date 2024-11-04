@@ -116,7 +116,7 @@ async def _embed_query_async(
         task_type=task_type,
     )
     return [
-        Embedding(embedding=np.array(emb)) for emb in batch_embedding_dict.embedding
+        Embedding(embedding=np.array(emb)) for emb in batch_embedding_dict["embedding"]
     ]
 
 

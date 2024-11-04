@@ -41,6 +41,7 @@ class LocalVectorDB(VectorDB):
 
     async def load_store(self, path: pathlib.Path) -> None:
         """Load the store contents from disk."""
+        _LOGGER.debug("Loading store from %s", path)
 
         def _load_store() -> dict[str, Any] | None:
             """Load the store contents from disk."""
@@ -67,6 +68,7 @@ class LocalVectorDB(VectorDB):
 
     async def save_store(self, path: pathlib.Path) -> None:
         """Save the store contents to disk."""
+        _LOGGER.debug("Saving store to %s (%d documents)", path, len(self._documents))
 
         def _save_store(data: dict[str, Any]) -> None:
             """Save the store contents to disk."""
