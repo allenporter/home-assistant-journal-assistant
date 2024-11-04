@@ -8,5 +8,5 @@
   "iot_class": "calculated",
   "issue_tracker": "https://github.com/allenporter/home-assistant-journal-asssistant/issues",
   "requirements": ["ical>=8.2.0", "google-generativeai>=0.8.1"],
-  "version": "0.4.6"
+  "version": "1.0.0"
 }
