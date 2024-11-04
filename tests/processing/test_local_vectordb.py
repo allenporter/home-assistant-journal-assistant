@@ -31,10 +31,13 @@ class FakeEmbeddingFunction:
 
     embeds: int = 0
 
-    async def __call__(self, item: str) -> Embedding:
-        result = [ord(c) for c in hashlib.sha256(item.encode()).hexdigest()][0:3]
-        self.embeds += 1
-        return Embedding(embedding=np.array(result))
+    async def __call__(self, items: list[str]) -> list[Embedding]:
+        results = []
+        for item in items:
+            emb = [ord(c) for c in hashlib.sha256(item.encode()).hexdigest()][0:3]
+            self.embeds += 1
+            results.append(Embedding(embedding=np.array(emb)))
+        return results
 
 
 @pytest.fixture

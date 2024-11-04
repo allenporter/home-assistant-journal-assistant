@@ -78,6 +78,9 @@ See https://github.com/allenporter/supernote-llm
 - [x] sensor for # of pages for each notebook prefix
 - [x] sensor with processor counts of total # of processed (total_increasing?)
 - [x] monthly/quarterly reflections not showing up, check on details
+- [x] Swap local vectordb interface
+- [x] Support local vectordb persistence
+
 
 ## Local Development
 

@@ -23,7 +23,7 @@ class Embedding:
     """The embedding."""
 
 
-EmbeddingFunction = Callable[[str], Awaitable[Embedding]]
+EmbeddingFunction = Callable[[list[str]], Awaitable[list[Embedding]]]
 """A function that takes a string and returns an embedding."""
 
 

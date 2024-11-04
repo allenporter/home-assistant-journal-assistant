@@ -91,13 +91,18 @@ class LocalVectorDB(VectorDB):
         """Add notebooks to the index."""
         _LOGGER.debug("Upserting %d documents in the index", len(documents))
 
+        embed_docs: list[IndexableDocument] = []
         for document in documents:
             if existing_document := self._documents.get(document.uid):
                 if existing_document.timestamp == document.timestamp:
                     # Skip if the document is already in the index
                     continue
+            embed_docs.append(document)
+
+        embeddings = await self._index_fn([doc.document for doc in embed_docs])
+        for document, embedding in zip(embed_docs, embeddings):
             self._documents[document.uid] = document
-            self._embeddings[document.uid] = await self._index_fn(document.document)
+            self._embeddings[document.uid] = embedding
 
     async def count(self) -> int:
         """Return the number of documents in the collection."""
@@ -109,7 +114,7 @@ class LocalVectorDB(VectorDB):
         # The results will be sorted by the query embedding
         query_embedding: Embedding | None = None
         if params.query:
-            query_embedding = await self._query_fn(params.query)
+            query_embedding = (await self._query_fn([params.query]))[0]
 
         def document_filter(document: IndexableDocument) -> bool:
             if params.start_date is not None and (

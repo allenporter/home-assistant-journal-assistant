@@ -9,6 +9,7 @@ import yaml
 import datetime
 from pathlib import Path
 
+import numpy as np
 import google.generativeai as genai
 from google.generativeai.embedding import EmbeddingTaskType
 import PIL.Image
@@ -105,17 +106,25 @@ class VisionModel:
             raise ValueError(f"Error parsing journal page: {err}")
 
 
-async def embed_query_async(text: str) -> Embedding:
+async def _embed_query_async(
+    texts: list[str], task_type: EmbeddingTaskType
+) -> list[Embedding]:
     """Embed a text query."""
-    result = await genai.embed_content_async(
-        content=text, model=EMBED_MODEL, task_type=EmbeddingTaskType.RETRIEVAL_QUERY
+    batch_embedding_dict = await genai.embed_content_async(
+        content=texts,
+        model=EMBED_MODEL,
+        task_type=task_type,
     )
-    return Embedding(embedding=result)
+    return [
+        Embedding(embedding=np.array(emb)) for emb in batch_embedding_dict.embedding
+    ]
 
 
-async def embed_document_async(text: str) -> Embedding:
+async def embed_query_async(texts: list[str]) -> list[Embedding]:
     """Embed a text query."""
-    result = await genai.embed_content_async(
-        content=text, model=EMBED_MODEL, task_type=EmbeddingTaskType.RETRIEVAL_DOCUMENT
-    )
-    return Embedding(embedding=result)
+    return await _embed_query_async(texts, EmbeddingTaskType.RETRIEVAL_QUERY)
+
+
+async def embed_document_async(texts: list[str]) -> list[Embedding]:
+    """Embed a text query."""
+    return await _embed_query_async(texts, EmbeddingTaskType.RETRIEVAL_DOCUMENT)

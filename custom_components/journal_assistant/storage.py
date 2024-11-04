@@ -28,7 +28,7 @@ _LOGGER = logging.getLogger(__name__)
 
 VECTOR_DB_STORAGE_PATH = f".storage/{DOMAIN}/{{config_entry_id}}/vectordb"
 JOURNAL_STORAGE_PATH = f".storage/{DOMAIN}/{{config_entry_id}}/journal"
-INDEX_BATCH_SIZE = 10
+INDEX_BATCH_SIZE = 20
 
 
 def journal_storage_path(hass: HomeAssistant, config_entry_id: str) -> Path:
