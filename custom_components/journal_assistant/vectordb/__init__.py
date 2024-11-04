@@ -4,9 +4,11 @@ from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 from typing import Any
 import datetime
+from collections.abc import Callable, Awaitable
 
 from mashumaro.mixins.json import DataClassJSONMixin
 from mashumaro.config import BaseConfig
+import numpy as np
 
 
 class VectorDBError(Exception):
@@ -14,7 +16,19 @@ class VectorDBError(Exception):
 
 
 @dataclass(kw_only=True)
-class IndexableDocument:
+class Embedding:
+    """An embedding."""
+
+    embedding: np.ndarray
+    """The embedding."""
+
+
+EmbeddingFunction = Callable[[str], Awaitable[Embedding]]
+"""A function that takes a string and returns an embedding."""
+
+
+@dataclass(kw_only=True)
+class IndexableDocument(DataClassJSONMixin):
     """An indexable document."""
 
     uid: str

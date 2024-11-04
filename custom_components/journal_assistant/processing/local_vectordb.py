@@ -2,8 +2,6 @@
 
 import itertools
 import logging
-from dataclasses import dataclass
-from collections.abc import Callable, Awaitable
 
 import numpy as np
 
@@ -13,6 +11,8 @@ from custom_components.journal_assistant.vectordb import (
     IndexableDocument,
     QueryParams,
     QueryResult,
+    Embedding,
+    EmbeddingFunction,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -22,17 +22,6 @@ DEFAULT_MAX_RESULTS = 10
 COLLECTION_NAME = "journal_assistant"
 MODEL = "models/text-embedding-004"
 EMPTY_QUERY = "task"  # Arbitrary query to use when no query is provided
-
-
-@dataclass(kw_only=True)
-class Embedding:
-    """An embedding."""
-
-    embedding: np.ndarray
-    """The embedding."""
-
-
-EmbeddingFunction = Callable[[str], Awaitable[Embedding]]
 
 
 class LocalVectorDB(VectorDB):
