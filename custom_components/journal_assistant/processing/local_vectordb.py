@@ -2,9 +2,12 @@
 
 import itertools
 import logging
+import asyncio
+import json
+from typing import Any
+import pathlib
 
 import numpy as np
-
 
 from custom_components.journal_assistant.vectordb import (
     VectorDB,
@@ -35,6 +38,54 @@ class LocalVectorDB(VectorDB):
         self._query_fn = query_fn
         self._documents: dict[str, IndexableDocument] = {}
         self._embeddings: dict[str, Embedding] = {}
+
+    async def load_store(self, path: pathlib.Path) -> None:
+        """Load the store contents from disk."""
+
+        def _load_store() -> dict[str, Any] | None:
+            """Load the store contents from disk."""
+            _LOGGER.debug("Loading store from %s", path)
+            if path.exists():
+                with path.open("r") as file:
+                    data = json.load(file)
+                    if isinstance(data, dict):
+                        return data
+            return None
+
+        loop = asyncio.get_event_loop()
+        data = await loop.run_in_executor(None, _load_store)
+        if data is None:
+            return
+        self._documents = {
+            uid: IndexableDocument.from_dict(document)
+            for uid, document in data["documents"].items()
+        }
+        self._embeddings = {
+            uid: Embedding(embedding=np.array(embedding))
+            for uid, embedding in data["embeddings"].items()
+        }
+
+    async def save_store(self, path: pathlib.Path) -> None:
+        """Save the store contents to disk."""
+
+        def _save_store(data: dict[str, Any]) -> None:
+            """Save the store contents to disk."""
+            _LOGGER.debug("Saving store to %s", path)
+            with path.open("w") as file:
+                json.dump(data, file)
+
+        data = {
+            "documents": {
+                uid: document.to_dict(omit_none=True)
+                for uid, document in self._documents.items()
+            },
+            "embeddings": {
+                uid: embedding.embedding.tolist()
+                for uid, embedding in self._embeddings.items()
+            },
+        }
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, _save_store, data)
 
     async def upsert_index(self, documents: list[IndexableDocument]) -> None:
         """Add notebooks to the index."""

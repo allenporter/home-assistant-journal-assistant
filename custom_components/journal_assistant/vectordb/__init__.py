@@ -43,6 +43,10 @@ class IndexableDocument(DataClassJSONMixin):
     document: str
     """The document content that will be indexed."""
 
+    class Config(BaseConfig):
+        omit_none = False
+        code_generation_options = ["TO_DICT_ADD_OMIT_NONE_FLAG"]
+
 
 @dataclass(kw_only=True)
 class QueryParams(DataClassJSONMixin):

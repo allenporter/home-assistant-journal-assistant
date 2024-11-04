@@ -10,11 +10,14 @@ import datetime
 from pathlib import Path
 
 import google.generativeai as genai
+from google.generativeai.embedding import EmbeddingTaskType
 import PIL.Image
 from mashumaro.exceptions import MissingField
 
 from .prompts import get_dynamic_prompts
 from .model import JournalPage
+from custom_components.journal_assistant.vectordb import Embedding
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,6 +31,8 @@ Created At: {created_at}
 Content:
 """
 EXTRACT_JSON = re.compile("```json\n(.*?)\n```", re.DOTALL)
+
+EMBED_MODEL = "models/text-embedding-004"
 
 
 def _parse_model_response(response_text: str) -> str:
@@ -98,3 +103,19 @@ class VisionModel:
             return JournalPage.from_yaml(yaml_content)
         except MissingField as err:
             raise ValueError(f"Error parsing journal page: {err}")
+
+
+async def embed_query_async(text: str) -> Embedding:
+    """Embed a text query."""
+    result = await genai.embed_text_async(
+        content=text, model=EMBED_MODEL, task_type=EmbeddingTaskType.RETRIEVAL_QUERY
+    )
+    return Embedding(embedding=result)
+
+
+async def embed_document_async(text: str) -> Embedding:
+    """Embed a text query."""
+    result = await genai.embed_text_async(
+        content=text, model=EMBED_MODEL, task_type=EmbeddingTaskType.RETRIEVAL_DOCUMENT
+    )
+    return Embedding(embedding=result)
