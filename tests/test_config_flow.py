@@ -14,8 +14,6 @@ from custom_components.journal_assistant.const import (
     CONF_NOTES,
     CONF_API_KEY,
     CONF_MEDIA_SOURCE,
-    CONF_CHROMADB_URL,
-    CONF_CHROMADB_TENANT,
 )
 
 
@@ -28,7 +26,7 @@ async def test_config_flow(hass: HomeAssistant) -> None:
     assert result.get("type") is FlowResultType.FORM
     assert result.get("errors") is None
 
-    with patch(f"custom_components.{DOMAIN}.config_flow.create_tenant"), patch(
+    with patch(
         f"custom_components.{DOMAIN}.async_setup_entry", return_value=True
     ) as mock_setup:
         result = await hass.config_entries.flow.async_configure(
@@ -37,7 +35,6 @@ async def test_config_flow(hass: HomeAssistant) -> None:
                 CONF_NAME: "Title",
                 CONF_API_KEY: "54321",
                 CONF_MEDIA_SOURCE: "media-source://test-domain/0",
-                CONF_CHROMADB_URL: "http://localhost:8080",
             },
         )
         await hass.async_block_till_done()
@@ -50,7 +47,5 @@ async def test_config_flow(hass: HomeAssistant) -> None:
         CONF_NOTES: "Daily\nWeekly\nMonthly",
         CONF_API_KEY: "54321",
         CONF_MEDIA_SOURCE: "media-source://test-domain/0",
-        CONF_CHROMADB_URL: "http://localhost:8080",
-        CONF_CHROMADB_TENANT: "Title-1609502400",
     }
     assert len(mock_setup.mock_calls) == 1

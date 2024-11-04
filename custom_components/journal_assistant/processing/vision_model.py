@@ -107,7 +107,7 @@ class VisionModel:
 
 async def embed_query_async(text: str) -> Embedding:
     """Embed a text query."""
-    result = await genai.embed_text_async(
+    result = await genai.embed_content_async(
         content=text, model=EMBED_MODEL, task_type=EmbeddingTaskType.RETRIEVAL_QUERY
     )
     return Embedding(embedding=result)
@@ -115,7 +115,7 @@ async def embed_query_async(text: str) -> Embedding:
 
 async def embed_document_async(text: str) -> Embedding:
     """Embed a text query."""
-    result = await genai.embed_text_async(
+    result = await genai.embed_content_async(
         content=text, model=EMBED_MODEL, task_type=EmbeddingTaskType.RETRIEVAL_DOCUMENT
     )
     return Embedding(embedding=result)

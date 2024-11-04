@@ -1,39 +1,34 @@
 """Library for handling Journal Assistant storage."""
 
-import asyncio
 from pathlib import Path
 import logging
 
 from ical.calendar import Calendar
 
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.config_entries import ConfigEntry
 
 from .const import (
     DEFAULT_NOTE_NAME,
     CONF_NOTES,
     DOMAIN,
-    CONF_CHROMADB_URL,
-    CONF_API_KEY,
-    CONF_CHROMADB_TENANT,
 )
 from .processing.journal import (
     journal_from_yaml,
     write_journal_page_yaml,
     indexable_notebooks_iterator,
 )
-from .processing.chromadb_vectordb import (
-    create_chroma_db,
-)
+from .processing.local_vectordb import LocalVectorDB
 from .processing.model import JournalPage
-from .vectordb import VectorDB, VectorDBError
+from .vectordb import VectorDB
+from .processing import vision_model
 
 
 _LOGGER = logging.getLogger(__name__)
 
 VECTOR_DB_STORAGE_PATH = f".storage/{DOMAIN}/{{config_entry_id}}/vectordb"
 JOURNAL_STORAGE_PATH = f".storage/{DOMAIN}/{{config_entry_id}}/journal"
+INDEX_BATCH_SIZE = 10
 
 
 def journal_storage_path(hass: HomeAssistant, config_entry_id: str) -> Path:
@@ -77,38 +72,22 @@ async def save_journal_entry(
     )
 
 
-def _create_vector_db(
-    hass: HomeAssistant,
-    chromadb_url: str,
-    tenant: str,
-    api_key: str,
-    entries: dict[str, Calendar],
-) -> VectorDB:
-    _LOGGER.debug("Creating VectorDB")
-    try:
-        vectordb = create_chroma_db(hass, chromadb_url, tenant, api_key)
-    except VectorDBError as err:
-        _LOGGER.error("Error creating ChromaDB client: %s", err)
-        raise HomeAssistantError(f"Error creating ChromaDB client: {err}") from err
-    return vectordb
-
-
 async def create_vector_db(hass: HomeAssistant, entry: ConfigEntry) -> VectorDB:
     """Create a VectorDB instance."""
     entries = await load_journal_entries(hass, entry)
-    vectordb = await hass.async_add_executor_job(  # type: ignore[no-any-return]
-        _create_vector_db,
-        hass,
-        entry.options[CONF_CHROMADB_URL],
-        entry.options[CONF_CHROMADB_TENANT],
-        entry.options[CONF_API_KEY],
-        entries,
+
+    vectordb = LocalVectorDB(
+        query_fn=vision_model.embed_query_async,
+        index_fn=vision_model.embed_document_async,
     )
+    storage_path = vectordb_storage_path(hass, entry.entry_id)
+    await vectordb.load_store(storage_path)
 
     _LOGGER.debug("Upserting document index")
-    tasks = []
-    for document_batch in indexable_notebooks_iterator(entries):
-        tasks.append(vectordb.upsert_index(document_batch))
-    await asyncio.gather(*tasks)
+    for document_batch in indexable_notebooks_iterator(
+        entries, batch_size=INDEX_BATCH_SIZE
+    ):
+        await vectordb.upsert_index(document_batch)
+    await vectordb.save_store(storage_path)
 
     return vectordb
