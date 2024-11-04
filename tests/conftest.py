@@ -200,7 +200,10 @@ class MockMediaSource(MediaSource):
     async def async_resolve_media(self, item: MediaSourceItem) -> PlayMedia:
         """Resolve media identifier."""
         _LOGGER.debug("Resolving media %s", item.identifier)
-        return self.resolve_response[item.identifier]
+        identifier = item.identifier
+        if item.identifier.startswith(MEDIA_SOURCE_PREFIX):
+            identifier = item.identifier[len(MEDIA_SOURCE_PREFIX) + 1 :]
+        return self.resolve_response[identifier]
 
     async def async_browse_media(self, item: MediaSourceItem) -> BrowseMediaSource:
         """Return details about the media source."""
