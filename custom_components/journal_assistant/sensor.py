@@ -24,11 +24,11 @@ _LOGGER = logging.getLogger(__name__)
 UPDATE_INTERVAL = datetime.timedelta(minutes=15)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class JournalAssistantSensorEntityDescription(SensorEntityDescription):
     """Describes Journal Assistant sensor entity."""
 
-    value_fn: Callable[[JournalAssistantData], Any] = lambda entry: None
+    value_fn: Callable[[JournalAssistantData], Any] | None = None
 
     @property
     def unique_id(self) -> str:
@@ -128,6 +128,8 @@ class VectorDBCountSensorEntity(SensorEntity):
 
     async def async_update(self) -> None:
         """Update the sensor state."""
+        if not self.entity_description.value_fn:
+            return
         task = self.entity_description.value_fn(self._data)
         if isinstance(task, Awaitable):
             task = await task
