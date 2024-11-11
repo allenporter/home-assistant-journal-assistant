@@ -24,7 +24,7 @@ _LOGGER = logging.getLogger(__name__)
 UPDATE_INTERVAL = datetime.timedelta(minutes=15)
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(frozen=True)
 class JournalAssistantSensorEntityDescription(SensorEntityDescription):
     """Describes Journal Assistant sensor entity."""
 
