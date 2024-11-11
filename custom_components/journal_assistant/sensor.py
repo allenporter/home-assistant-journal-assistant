@@ -28,8 +28,6 @@ UPDATE_INTERVAL = datetime.timedelta(minutes=15)
 class JournalAssistantSensorEntityDescription(SensorEntityDescription):
     """Describes Journal Assistant sensor entity."""
 
-    key: str
-    icon: str = "mdi:counter"
     value_fn: Callable[[JournalAssistantData], Any] = lambda entry: None
 
     @property
@@ -41,6 +39,7 @@ class JournalAssistantSensorEntityDescription(SensorEntityDescription):
 SENSOR_DESCRIPTIONS = [
     JournalAssistantSensorEntityDescription(
         key="vector_db_count",
+        icon="mdi:counter",
         translation_key="vector_db_count",
         value_fn=lambda data: data.vector_db.count(),
         state_class=SensorStateClass.MEASUREMENT,
@@ -82,11 +81,13 @@ SENSOR_DESCRIPTIONS = [
     ),
     JournalAssistantSensorEntityDescription(
         key="last_scan_start",
+        icon="mdi:clock-start",
         translation_key="last_scan_start",
         value_fn=lambda data: data.media_source_processor.scan_stats.last_scan_start,
     ),
     JournalAssistantSensorEntityDescription(
         key="last_scan_end",
+        icon="mdi:clock-end",
         translation_key="last_scan_end",
         value_fn=lambda data: data.media_source_processor.scan_stats.last_scan_end,
     ),
