@@ -11,7 +11,7 @@ on:
       - main
 
 env:
-  PYTHON_VERSION: 3.13
+  PYTHON_VERSION: 3.12  # Using 3.13 until dataclass entity description is fixed
 
 jobs:
   build:
