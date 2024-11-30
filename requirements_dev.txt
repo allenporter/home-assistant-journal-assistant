@@ -4,16 +4,23 @@ mypy==1.13.0
 pip==24.3.1
 pre-commit==4.0.1
 ruff==0.8.1
+<<<<<<< ours
 
 google-generativeai>=0.8.1
 ical>=8.2.0
+=======
+>>>>>>> theirs
 
 # Home Assistant testing dependencies
 pytest-homeassistant-custom-component==0.13.184
 syrupy>=4.6.1
 
 # Component dependencies
+<<<<<<< ours
 hassil<2.0
+=======
+hassil>=2.0.4
+>>>>>>> theirs
 home-assistant-intents>=2024.4.3
 mutagen>=1.47.0
 
