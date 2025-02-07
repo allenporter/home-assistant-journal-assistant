@@ -122,9 +122,9 @@ async def _embed_query_async(
 
 async def embed_query_async(texts: list[str]) -> list[Embedding]:
     """Embed a text query."""
-    return await _embed_query_async(texts, EmbeddingTaskType.RETRIEVAL_QUERY)
+    return await _embed_query_async(texts, EmbeddingTaskType.RETRIEVAL_QUERY)  # type: ignore[arg-type]
 
 
 async def embed_document_async(texts: list[str]) -> list[Embedding]:
     """Embed a text query."""
-    return await _embed_query_async(texts, EmbeddingTaskType.RETRIEVAL_DOCUMENT)
+    return await _embed_query_async(texts, EmbeddingTaskType.RETRIEVAL_DOCUMENT)   # type: ignore[arg-type]
