@@ -81,15 +81,24 @@ See https://github.com/allenporter/supernote-llm
 - [x] Swap local vectordb interface
 - [x] Support local vectordb persistence
 
-
 ## Local Development
 
-First time, prepare the environment:
+### Pre-requisites
+
+```bash
+$ uv venv
+$ source .venv/bin/activate
+$ uv pip install -r requirements_dev.txt
+```
+
+### Prepare Home Assistant
 
 ```bash
 $ export PYTHONPATH="${PYTHONPATH}:${PWD}"
 $ hass -c /workspaces/config --script ensure_config
 ```
+
+### Run Home Assistant
 
 From then on run home assistant:
 
