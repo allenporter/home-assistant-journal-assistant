@@ -7,6 +7,7 @@ from unittest.mock import Mock, AsyncMock
 from custom_components.journal_assistant.processing.vision_model import (
     VisionModel,
 )
+from custom_components.journal_assistant.const import VISION_MODEL_NAME
 
 
 async def test_processing_markdown_response() -> None:
@@ -23,7 +24,7 @@ async def test_processing_markdown_response() -> None:
     mock_genai = AsyncMock()
     mock_genai.aio.models.generate_content.return_value = mock_response
 
-    vision_model = VisionModel(mock_genai, "gemini-2.5-flash")
+    vision_model = VisionModel(mock_genai, VISION_MODEL_NAME)
     result = await vision_model.process_journal_page(
         Path("Daily-01-P20221030210759068713clbdtpKcEWTi"), b"content"
     )
@@ -45,7 +46,7 @@ async def test_processing_json_response() -> None:
     mock_genai = AsyncMock()
     mock_genai.aio.models.generate_content.return_value = mock_response
 
-    vision_model = VisionModel(mock_genai, "gemini-2.5-flash")
+    vision_model = VisionModel(mock_genai, VISION_MODEL_NAME)
     result = await vision_model.process_journal_page(
         Path("Daily-01-P20221030210759068713clbdtpKcEWTi"), b"content"
     )
