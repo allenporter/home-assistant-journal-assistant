@@ -8,7 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
-import google.generativeai as genai
+from google import genai
 
 from .const import DOMAIN, CONF_MEDIA_SOURCE, VISION_MODEL_NAME, CONF_API_KEY
 from .services import async_register_services
@@ -32,9 +32,9 @@ async def async_setup_entry(
     hass: HomeAssistant, entry: JournalAssistantConfigEntry
 ) -> bool:
     """Set up a config entry."""
-    genai.configure(api_key=entry.options[CONF_API_KEY])
-    model = genai.GenerativeModel(model_name=VISION_MODEL_NAME)
-    vector_db = await create_vector_db(hass, entry)
+    client = genai.Client(api_key=entry.options[CONF_API_KEY])
+    vision_model = VisionModel(client, VISION_MODEL_NAME)
+    vector_db = await create_vector_db(hass, entry, vision_model)
 
     media_source = entry.options[CONF_MEDIA_SOURCE]
     processor = MediaSourceProcessor(
@@ -46,7 +46,7 @@ async def async_setup_entry(
 
     entry.runtime_data = JournalAssistantData(
         vector_db=vector_db,
-        vision_model=VisionModel(model),
+        vision_model=VisionModel(client, VISION_MODEL_NAME),
         media_source_processor=processor,
     )
     await hass.config_entries.async_forward_entry_setups(

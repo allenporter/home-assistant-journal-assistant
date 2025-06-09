@@ -1,7 +1,7 @@
 """Test the vision model library."""
 
 from pathlib import Path
-from unittest.mock import patch, Mock, AsyncMock
+from unittest.mock import Mock, AsyncMock
 
 
 from custom_components.journal_assistant.processing.vision_model import (
@@ -21,15 +21,12 @@ async def test_processing_markdown_response() -> None:
 }
 ```"""
     mock_genai = AsyncMock()
-    mock_genai.generate_content_async.return_value = mock_response
+    mock_genai.aio.models.generate_content.return_value = mock_response
 
-    vision_model = VisionModel(mock_genai)
-    with patch(
-        "custom_components.journal_assistant.processing.vision_model.PIL.Image.open"
-    ):
-        result = await vision_model.process_journal_page(
-            Path("Daily-01-P20221030210759068713clbdtpKcEWTi"), b"content"
-        )
+    vision_model = VisionModel(mock_genai, "gemini-2.5-flash")
+    result = await vision_model.process_journal_page(
+        Path("Daily-01-P20221030210759068713clbdtpKcEWTi"), b"content"
+    )
     assert result.filename == "Daily-01-P20221030210759068713clbdtpKcEWTi.png"
     assert result.created_at == "2022-10-30T21:07:60.068713"
     assert result.label == "daily"
@@ -46,15 +43,12 @@ async def test_processing_json_response() -> None:
     "date": "2022-10-30"
 }"""
     mock_genai = AsyncMock()
-    mock_genai.generate_content_async.return_value = mock_response
+    mock_genai.aio.models.generate_content.return_value = mock_response
 
-    vision_model = VisionModel(mock_genai)
-    with patch(
-        "custom_components.journal_assistant.processing.vision_model.PIL.Image.open"
-    ):
-        result = await vision_model.process_journal_page(
-            Path("Daily-01-P20221030210759068713clbdtpKcEWTi"), b"content"
-        )
+    vision_model = VisionModel(mock_genai, "gemini-2.5-flash")
+    result = await vision_model.process_journal_page(
+        Path("Daily-01-P20221030210759068713clbdtpKcEWTi"), b"content"
+    )
     assert result.filename == "Daily-01-P20221030210759068713clbdtpKcEWTi.png"
     assert result.created_at == "2022-10-30T21:07:59.068713"
     assert result.label == "daily"

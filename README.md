@@ -95,7 +95,7 @@ $ uv pip install -r requirements_dev.txt
 
 ```bash
 $ export PYTHONPATH="${PYTHONPATH}:${PWD}"
-$ hass -c /workspaces/config --script ensure_config
+$ hass -c /workspaces/config --script ensure_config --prerelease=allow
 ```
 
 ### Run Home Assistant

@@ -73,13 +73,15 @@ async def save_journal_entry(
     )
 
 
-async def create_vector_db(hass: HomeAssistant, entry: ConfigEntry) -> VectorDB:
+async def create_vector_db(
+    hass: HomeAssistant, entry: ConfigEntry, model: vision_model.VisionModel
+) -> VectorDB:
     """Create a VectorDB instance."""
     entries = await load_journal_entries(hass, entry)
 
     vectordb = LocalVectorDB(
-        query_fn=vision_model.embed_query_async,
-        index_fn=vision_model.embed_document_async,
+        query_fn=model.embed_query_async,
+        index_fn=model.embed_document_async,
     )
 
     storage_path = vectordb_storage_path(hass, entry.entry_id)

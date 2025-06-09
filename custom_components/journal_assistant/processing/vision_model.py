@@ -1,7 +1,6 @@
 """Multi-modal vision model for processing journal pages."""
 
 import asyncio
-import io
 import re
 import logging
 import json
@@ -10,9 +9,8 @@ import datetime
 from pathlib import Path
 
 import numpy as np
-import google.generativeai as genai
-from google.generativeai.embedding import EmbeddingTaskType
-import PIL.Image
+from google import genai
+from google.genai import types
 from mashumaro.exceptions import MissingField
 
 from .prompts import get_dynamic_prompts
@@ -60,8 +58,9 @@ def _parse_model_response(response_text: str) -> str:
 class VisionModel:
     """Multi-modal vision model for processing journal pages."""
 
-    def __init__(self, model: genai.GenerativeModel) -> None:
+    def __init__(self, client: genai.Client, model: str) -> None:
         """Initialize the vision model."""
+        self._client = client
         self._model = model
 
     async def process_journal_page(
@@ -80,23 +79,33 @@ class VisionModel:
 
         loop = asyncio.get_event_loop()
         prompts = await loop.run_in_executor(None, get_dynamic_prompts, page_name)
-        prompt = "\n\n".join([p.as_prompt() for p in prompts])
 
-        img = PIL.Image.open(io.BytesIO(page_content))
-
-        response = await self._model.generate_content_async(
-            [
-                prompt,
-                FILE_PROMPT.format(
-                    filename=f"{page_name.stem}.png",
-                    created_at=created_at.isoformat() if created_at else "N/A",
+        contents = types.Content(
+            parts=[
+                types.Part(
+                    text=FILE_PROMPT.format(
+                        filename=page_name.name,
+                        created_at=created_at.isoformat(),
+                    )
                 ),
-                img,
+                types.Part(
+                    inline_data=types.Blob(
+                        mime_type="image/png",
+                        data=page_content,
+                    )
+                ),
             ]
+        )
+        response = await self._client.aio.models.generate_content(
+            model=self._model,
+            config=types.GenerateContentConfig(
+                system_instruction=[p.as_prompt() for p in prompts],
+            ),
+            contents=contents,
         )
 
         try:
-            text = response.text
+            text = response.text or ""
         except AttributeError as err:
             raise ValueError("AttributeError with response.text") from err
         yaml_content = _parse_model_response(text)
@@ -105,26 +114,29 @@ class VisionModel:
         except MissingField as err:
             raise ValueError(f"Error parsing journal page: {err}")
 
+    async def _embed_query_async(
+        self, texts: list[str], task_type: str
+    ) -> list[Embedding]:
+        """Embed a text query."""
 
-async def _embed_query_async(
-    texts: list[str], task_type: EmbeddingTaskType
-) -> list[Embedding]:
-    """Embed a text query."""
-    batch_embedding_dict = await genai.embed_content_async(
-        content=texts,
-        model=EMBED_MODEL,
-        task_type=task_type,
-    )
-    return [
-        Embedding(embedding=np.array(emb)) for emb in batch_embedding_dict["embedding"]
-    ]
+        result = await self._client.aio.models.embed_content(
+            model=EMBED_MODEL,
+            contents=texts,  # type: ignore[arg-type]
+            config=types.EmbedContentConfig(task_type=task_type),
+        )
+        embeddings = []
+        for content_embedding in result.embeddings or ():
+            if content_embedding.values is None:
+                raise ValueError(
+                    f"Error embedding content had no values: {content_embedding}"
+                )
+            embeddings.append(Embedding(embedding=np.array(content_embedding.values)))
+        return embeddings
 
+    async def embed_query_async(self, texts: list[str]) -> list[Embedding]:
+        """Embed a text query."""
+        return await self._embed_query_async(texts, "RETRIEVAL_QUERY")  # type: ignore[arg-type]
 
-async def embed_query_async(texts: list[str]) -> list[Embedding]:
-    """Embed a text query."""
-    return await _embed_query_async(texts, EmbeddingTaskType.RETRIEVAL_QUERY)  # type: ignore[arg-type]
-
-
-async def embed_document_async(texts: list[str]) -> list[Embedding]:
-    """Embed a text query."""
-    return await _embed_query_async(texts, EmbeddingTaskType.RETRIEVAL_DOCUMENT)   # type: ignore[arg-type]
+    async def embed_document_async(self, texts: list[str]) -> list[Embedding]:
+        """Embed a text query."""
+        return await self._embed_query_async(texts, "RETRIEVAL_DOCUMENT")  # type: ignore[arg-type]
