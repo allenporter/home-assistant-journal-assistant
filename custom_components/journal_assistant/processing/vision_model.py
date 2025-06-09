@@ -118,6 +118,8 @@ class VisionModel:
         self, texts: list[str], task_type: str
     ) -> list[Embedding]:
         """Embed a text query."""
+        if not texts:
+            return []
 
         result = await self._client.aio.models.embed_content(
             model=EMBED_MODEL,
