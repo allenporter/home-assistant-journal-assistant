@@ -32,7 +32,6 @@ async def test_journal_llm_api(
     llm_context = LLMContext(
         platform="assistant",
         context=None,
-        user_prompt="What's on my todo list today?",
         language="en",
         assistant=None,
         device_id=None,
@@ -80,7 +79,6 @@ async def test_llm_api_serialization(
     llm_context = LLMContext(
         platform="assistant",
         context=None,
-        user_prompt="What's on my todo list today?",
         language="en",
         assistant=None,
         device_id=None,
@@ -105,7 +103,6 @@ async def test_date_args(
     llm_context = LLMContext(
         platform="assistant",
         context=None,
-        user_prompt="What's on my todo list today?",
         language="en",
         assistant=None,
         device_id=None,
