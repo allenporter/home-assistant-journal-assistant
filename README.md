@@ -88,14 +88,14 @@ See https://github.com/allenporter/supernote-llm
 ```bash
 $ uv venv
 $ source .venv/bin/activate
-$ uv pip install -r requirements_dev.txt
+$ uv pip install -r requirements_dev.txt --prerelease=allow
 ```
 
 ### Prepare Home Assistant
 
 ```bash
 $ export PYTHONPATH="${PYTHONPATH}:${PWD}"
-$ hass -c /workspaces/config --script ensure_config --prerelease=allow
+$ hass -c /workspaces/config --script ensure_config
 ```
 
 ### Run Home Assistant
