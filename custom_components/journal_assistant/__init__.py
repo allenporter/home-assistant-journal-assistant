@@ -32,7 +32,12 @@ async def async_setup_entry(
     hass: HomeAssistant, entry: JournalAssistantConfigEntry
 ) -> bool:
     """Set up a config entry."""
-    client = genai.Client(api_key=entry.options[CONF_API_KEY])
+
+    def create_client():
+        return genai.Client(api_key=entry.options[CONF_API_KEY])
+
+    client = await hass.async_add_executor_job(create_client)
+
     vision_model = VisionModel(client, VISION_MODEL_NAME)
     vector_db = await create_vector_db(hass, entry, vision_model)
 
