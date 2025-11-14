@@ -33,7 +33,7 @@ async def async_setup_entry(
 ) -> bool:
     """Set up a config entry."""
 
-    def create_client():
+    def create_client() -> genai.Client:
         return genai.Client(api_key=entry.options[CONF_API_KEY])
 
     client = await hass.async_add_executor_job(create_client)
