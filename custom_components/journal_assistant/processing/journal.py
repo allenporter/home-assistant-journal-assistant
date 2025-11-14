@@ -27,6 +27,7 @@ __all__ = [
 
 INDEX_BATCH_SIZE = 25
 
+
 def journal_pages(storage_dir: Path, journal_name: str) -> list[JournalPage]:
     """Load all journal pages from a storage directory with the specified journal prefix."""
     pages = []
@@ -106,7 +107,6 @@ def journal_from_yaml(
 
     journals = {}
     for note_name in note_names:
-
         # Load all pages from with the same journal prefix
         pages = journal_pages(storage_dir, note_name)
 
@@ -144,10 +144,11 @@ def journal_from_yaml(
     return journals
 
 
-
 def _serialize_content(item: Journal) -> str:
     """Serialize a journal entry."""
-    return yaml.dump(item.dict(exclude={"uid", "dtsamp"}, exclude_unset=True, exclude_none=True))  # type: ignore[no-any-return]
+    return yaml.dump(  # type: ignore[no-any-return]
+        item.dict(exclude={"uid", "dtsamp"}, exclude_unset=True, exclude_none=True)
+    )
 
 
 def create_indexable_document(journal_entry: Journal) -> IndexableDocument:

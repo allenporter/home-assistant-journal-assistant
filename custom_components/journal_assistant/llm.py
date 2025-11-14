@@ -153,7 +153,9 @@ class JournalLLMApi(API):
 
     async def async_get_api_instance(self, llm_context: LLMContext) -> APIInstance:
         """Return the instance of the API."""
-        config_entry: JournalAssistantConfigEntry = self.hass.config_entries.async_get_entry(self._entry_id)  # type: ignore[assignment]
+        config_entry: JournalAssistantConfigEntry = (
+            self.hass.config_entries.async_get_entry(self._entry_id)  # type: ignore[assignment]
+        )
         vector_db = config_entry.runtime_data.vector_db
         exposed_entities = _get_exposed_entities(self.hass)
         prompt = "\n".join([PROMPT, yaml.dump(list(exposed_entities.values()))])

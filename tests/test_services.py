@@ -60,10 +60,11 @@ async def test_process_media(
         content=b"image-content",
     )
 
-    with patch(
-        "custom_components.journal_assistant.VisionModel.process_journal_page"
-    ) as mock_process, patch(
-        "custom_components.journal_assistant.processing.journal.write_content"
+    with (
+        patch(
+            "custom_components.journal_assistant.VisionModel.process_journal_page"
+        ) as mock_process,
+        patch("custom_components.journal_assistant.processing.journal.write_content"),
     ):
         mock_process.return_value = JournalPage(
             filename="Daily-01-P20221030210760068713clbdtpKcEWTi.png",
