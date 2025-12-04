@@ -3,7 +3,7 @@ black==25.11.0
 mypy==1.18.2
 pip==25.3
 pre-commit==4.5.0
-ruff==0.14.7
+ruff==0.14.8
 
 google-genai>=1.19.0
 ical>=8.2.0
