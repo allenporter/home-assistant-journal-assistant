@@ -9,7 +9,7 @@ google-genai>=1.19.0
 ical>=8.2.0
 
 # Home Assistant testing dependencies
-pytest-homeassistant-custom-component==0.13.298
+pytest-homeassistant-custom-component==0.13.299
 syrupy>=4.6.1
 
 # Component dependencies
