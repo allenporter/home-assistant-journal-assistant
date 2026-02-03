@@ -52,7 +52,7 @@ def _parse_model_response(response_text: str) -> str:
         if v is None or v == "null":
             del obj[k]
 
-    return yaml.dump(obj, explicit_start=True, sort_keys=False)  # type: ignore[no-any-return]
+    return yaml.dump(obj, explicit_start=True, sort_keys=False)
 
 
 class VisionModel:
@@ -123,7 +123,7 @@ class VisionModel:
 
         result = await self._client.aio.models.embed_content(
             model=EMBED_MODEL,
-            contents=texts,  # type: ignore[arg-type]
+            contents=texts,
             config=types.EmbedContentConfig(task_type=task_type),
         )
         embeddings = []
@@ -137,8 +137,8 @@ class VisionModel:
 
     async def embed_query_async(self, texts: list[str]) -> list[Embedding]:
         """Embed a text query."""
-        return await self._embed_query_async(texts, "RETRIEVAL_QUERY")  # type: ignore[arg-type]
+        return await self._embed_query_async(texts, "RETRIEVAL_QUERY")
 
     async def embed_document_async(self, texts: list[str]) -> list[Embedding]:
         """Embed a text query."""
-        return await self._embed_query_async(texts, "RETRIEVAL_DOCUMENT")  # type: ignore[arg-type]
+        return await self._embed_query_async(texts, "RETRIEVAL_DOCUMENT")

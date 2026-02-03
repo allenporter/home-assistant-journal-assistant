@@ -146,7 +146,7 @@ def journal_from_yaml(
 
 def _serialize_content(item: Journal) -> str:
     """Serialize a journal entry."""
-    return yaml.dump(  # type: ignore[no-any-return]
+    return yaml.dump(
         item.dict(exclude={"uid", "dtsamp"}, exclude_unset=True, exclude_none=True)
     )
 

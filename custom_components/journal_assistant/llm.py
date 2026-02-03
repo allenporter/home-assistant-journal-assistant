@@ -121,11 +121,11 @@ class VectorSearchTool(Tool):
         if args.get("date_range"):
             if start_date := args["date_range"].get("start"):
                 if isinstance(start_date, str):
-                    start_date = datetime.date.fromisoformat(start_date)  # type: ignore[unreachable]
+                    start_date = datetime.date.fromisoformat(start_date)
                 query_params.start_date = dt_util.start_of_local_day(start_date)
             if end_date := args["date_range"].get("end"):
                 if isinstance(end_date, str):
-                    end_date = datetime.date.fromisoformat(end_date)  # type: ignore[unreachable]
+                    end_date = datetime.date.fromisoformat(end_date)
                 query_params.end_date = dt_util.start_of_local_day(end_date)
         results = await self._db.query(query_params)
         _LOGGER.debug("Search results: %s", results)
@@ -154,7 +154,7 @@ class JournalLLMApi(API):
     async def async_get_api_instance(self, llm_context: LLMContext) -> APIInstance:
         """Return the instance of the API."""
         config_entry: JournalAssistantConfigEntry = (
-            self.hass.config_entries.async_get_entry(self._entry_id)  # type: ignore[assignment]
+            self.hass.config_entries.async_get_entry(self._entry_id)
         )
         vector_db = config_entry.runtime_data.vector_db
         exposed_entities = _get_exposed_entities(self.hass)

@@ -1,0 +1,11 @@
+diff a/README.md b/README.md	(rejected hunks)
+@@ -5,7 +5,6 @@ A multi-modal notebook processor for a Bullet Journal
+ ## Environment Pre-requisites
+
+ ```bash
+-$ uv venv
+-$ source .venv/bin/activate
+-$ uv pip install -r requirements_dev.txt
++$ script/bootstrap
++$ script/setup
+ ```

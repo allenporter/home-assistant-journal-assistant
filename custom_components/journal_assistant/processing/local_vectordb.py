@@ -136,7 +136,7 @@ class LocalVectorDB(VectorDB):
         def compute_distance(document: IndexableDocument) -> float:
             if query_embedding is None:
                 return 0.0
-            return np.linalg.norm(  # type: ignore[return-value]
+            return np.linalg.norm(
                 query_embedding.embedding - self._embeddings[document.uid].embedding
             )
 
