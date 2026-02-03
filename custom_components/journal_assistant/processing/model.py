@@ -83,7 +83,7 @@ class DynamicPrompt(DataClassYAMLMixin, DataClassJSONMixin):
     def from_file(cls, filename: pathlib.Path) -> "DynamicPrompt":
         """Create a dynamic prompt from a file."""
         content = filename.read_text()
-        docs = list(yaml.load_all(content, Loader=yaml.CSafeLoader))
+        docs = list(yaml.load_all(content, Loader=yaml.CSafeLoader)) # type: ignore[possibly-missing-attribute]
         if not docs:
             raise ValueError(f"Failed to parse {filename}")
 

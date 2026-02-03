@@ -153,7 +153,7 @@ class JournalLLMApi(API):
 
     async def async_get_api_instance(self, llm_context: LLMContext) -> APIInstance:
         """Return the instance of the API."""
-        config_entry: JournalAssistantConfigEntry = (
+        config_entry: JournalAssistantConfigEntry = (   # type: ignore[invalid-assignment]
             self.hass.config_entries.async_get_entry(self._entry_id)
         )
         vector_db = config_entry.runtime_data.vector_db

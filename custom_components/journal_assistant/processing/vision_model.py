@@ -123,7 +123,7 @@ class VisionModel:
 
         result = await self._client.aio.models.embed_content(
             model=EMBED_MODEL,
-            contents=texts,
+            contents=texts,  # type: ignore[invalid-argument-type]
             config=types.EmbedContentConfig(task_type=task_type),
         )
         embeddings = []
