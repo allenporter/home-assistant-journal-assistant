@@ -2,7 +2,7 @@
 pip==26.0.1
 pre-commit==4.5.1
 ruff==0.15.0
-ty==0.0.14
+ty==0.0.15
 
 google-genai>=1.19.0
 ical>=8.2.0
