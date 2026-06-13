@@ -153,9 +153,10 @@ class JournalLLMApi(API):
 
     async def async_get_api_instance(self, llm_context: LLMContext) -> APIInstance:
         """Return the instance of the API."""
-        config_entry: JournalAssistantConfigEntry = (   # type: ignore[invalid-assignment]
-            self.hass.config_entries.async_get_entry(self._entry_id)
-        )
+        config_entry_raw = self.hass.config_entries.async_get_entry(self._entry_id)
+        if config_entry_raw is None:
+            raise HomeAssistantError("Config entry not found")
+        config_entry = cast(JournalAssistantConfigEntry, config_entry_raw)
         vector_db = config_entry.runtime_data.vector_db
         exposed_entities = _get_exposed_entities(self.hass)
         prompt = "\n".join([PROMPT, yaml.dump(list(exposed_entities.values()))])

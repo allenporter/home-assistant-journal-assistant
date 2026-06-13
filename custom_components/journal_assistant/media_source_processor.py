@@ -184,7 +184,7 @@ class MediaSourceProcessor:
                 scan_stats.errors += 1
                 continue
             for child in browse.children or ():
-                child_identifier = f"{URI_SCHEME}{child.domain}/{child.identifier}"  # type: ignore[attr-defined]
+                child_identifier = f"{URI_SCHEME}{child.domain}/{child.identifier}"  # ty: ignore[unresolved-attribute]
                 if child.can_expand:
                     scan_stats.scanned_folders += 1
                     queue.append(child_identifier)

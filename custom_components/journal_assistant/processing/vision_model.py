@@ -7,6 +7,7 @@ import json
 import yaml
 import datetime
 from pathlib import Path
+from typing import Any, cast
 
 import numpy as np
 from google import genai
@@ -123,7 +124,7 @@ class VisionModel:
 
         result = await self._client.aio.models.embed_content(
             model=EMBED_MODEL,
-            contents=texts,  # type: ignore[invalid-argument-type]
+            contents=cast(Any, texts),
             config=types.EmbedContentConfig(task_type=task_type),
         )
         embeddings = []
