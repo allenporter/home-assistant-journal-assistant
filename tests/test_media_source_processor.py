@@ -13,6 +13,7 @@ from homeassistant.components.media_source import (
     BrowseMediaSource,
     PlayMedia,
 )
+from homeassistant.util import dt as dt_util
 
 from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
@@ -66,9 +67,9 @@ async def test_empty_media_source(
             can_play=False,
         )
     }
-    now = datetime.datetime.now()
+    now = dt_util.utcnow()
 
-    async_fire_time_changed(hass, now + datetime.timedelta(minutes=90))
+    async_fire_time_changed(hass, now + datetime.timedelta(hours=7))
     await hass.async_block_till_done()
 
     mock_process_item.assert_not_awaited()
@@ -119,15 +120,15 @@ async def test_process_new_media_content(
 
     mock_process_item.assert_not_awaited()
 
-    now = datetime.datetime.now()
-    async_fire_time_changed(hass, now + datetime.timedelta(minutes=90))
+    now = dt_util.utcnow()
+    async_fire_time_changed(hass, now + datetime.timedelta(hours=7))
     await hass.async_block_till_done()
 
     mock_process_item.assert_awaited()
     mock_process_item.reset_mock()
 
     # Run again and verify no additional event is fired since the hash has not changed
-    async_fire_time_changed(hass, now + datetime.timedelta(minutes=150))
+    async_fire_time_changed(hass, now + datetime.timedelta(hours=14))
     await hass.async_block_till_done()
 
     mock_process_item.assert_not_awaited()
@@ -138,7 +139,7 @@ async def test_process_new_media_content(
         "http://localhost/image-1.jpg",
         content=b"image-content-updated",
     )
-    async_fire_time_changed(hass, now + datetime.timedelta(minutes=190))
+    async_fire_time_changed(hass, now + datetime.timedelta(hours=21))
     await hass.async_block_till_done()
 
     mock_process_item.assert_awaited()
@@ -187,12 +188,12 @@ async def test_process_failure(
         status=HTTPStatus.INTERNAL_SERVER_ERROR,
     )
 
-    now = datetime.datetime.now()
-    async_fire_time_changed(hass, now + datetime.timedelta(minutes=90))
+    now = dt_util.utcnow()
+    async_fire_time_changed(hass, now + datetime.timedelta(hours=7))
     await hass.async_block_till_done()
 
     # The event should not be fired as the download failed
-    mock_process_item.process.assert_not_awaited
+    mock_process_item.assert_not_awaited()
 
 
 @pytest.mark.usefixtures("config_entry")
@@ -257,8 +258,8 @@ async def test_nested_folders(
         content=b"image-content",
     )
 
-    now = datetime.datetime.now()
-    async_fire_time_changed(hass, now + datetime.timedelta(minutes=90))
+    now = dt_util.utcnow()
+    async_fire_time_changed(hass, now + datetime.timedelta(hours=7))
     await hass.async_block_till_done()
 
     # Discovered a media item
