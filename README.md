@@ -1,4 +1,4 @@
-# home-assistant-journal-asssistant
+# home-assistant-journal-assistant
 
 A multi-modal notebook processor for a Bullet Journal.
 
